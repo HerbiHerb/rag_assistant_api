@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<DTFAQ folder="/Sites/Wins/Germany/German/FAQ/00_Basiswissen/testrelevant/00_Festnetz/2023 Welche Vorteile bietet die Megasport Option?" name="Welche Vorteile bietet die Megasport Option?" xmlns:cmexport="http://www.coremedia.com/2012/cmexport">
+<externalRefId></externalRefId>
+<locale>de-DE</locale>
+<master/>
+<viewtype/>
+<localSettings><Struct xmlns="http://www.coremedia.com/2008/struct" xmlns:xlink="http://www.w3.org/1999/xlink">
+<StructProperty Name="attributes">
+<Struct>
+<StructProperty Name="geschaeftsfeld">
+<Struct>
+<BooleanProperty Name="mandatory">true</BooleanProperty>
+<LinkProperty Name="attr" LinkType="coremedia:///cap/contenttype/Content_" xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Gesch%C3%A4ftsfeld.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Gesch%C3%A4ftsfeld"/>
+<LinkListProperty Name="value" LinkType="coremedia:///cap/contenttype/Content_">
+<Link xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Attribut-Optionen/Festnetz.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Attribut-Optionen/Festnetz"/>
+</LinkListProperty>
+</Struct>
+</StructProperty>
+<StructProperty Name="segment">
+<Struct>
+<BooleanProperty Name="mandatory">true</BooleanProperty>
+<LinkProperty Name="attr" LinkType="coremedia:///cap/contenttype/Content_" xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Segment.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Segment"/>
+<LinkListProperty Name="value" LinkType="coremedia:///cap/contenttype/Content_">
+<Link xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Attribut-Optionen/PK.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Attribut-Optionen/PK"/>
+</LinkListProperty>
+</Struct>
+</StructProperty>
+<StructProperty Name="tariffamilie">
+<Struct>
+<BooleanProperty Name="mandatory">false</BooleanProperty>
+<LinkProperty Name="attr" LinkType="coremedia:///cap/contenttype/Content_" xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Tariffamilie.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Tariffamilie"/>
+</Struct>
+</StructProperty>
+<StructProperty Name="hersteller">
+<Struct>
+<BooleanProperty Name="mandatory">false</BooleanProperty>
+<LinkProperty Name="attr" LinkType="coremedia:///cap/contenttype/Content_" xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Hersteller.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Hersteller"/>
+</Struct>
+</StructProperty>
+<StructProperty Name="produkttyp">
+<Struct>
+<BooleanProperty Name="mandatory">false</BooleanProperty>
+<LinkProperty Name="attr" LinkType="coremedia:///cap/contenttype/Content_" xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Produkttyp.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Produkttyp"/>
+</Struct>
+</StructProperty>
+</Struct>
+</StructProperty>
+</Struct></localSettings>
+<linkedSettings/>
+<resourceBundles2/>
+<segment></segment>
+<title>Welche Vorteile bietet die Megasport Option?</title>
+<htmlTitle></htmlTitle>
+<keywords>Basiswissen_TV_Streaming</keywords>
+<htmlDescription></htmlDescription>
+<subjectTaxonomy/>
+<locationTaxonomy/>
+<contexts/>
+<teaserTitle></teaserTitle>
+<pictures/>
+<related/>
+<authors/>
+<children/>
+<javaScript/>
+<css/>
+<theme/>
+<internallyRestricted>1</internallyRestricted>
+<notes grammarName="coremedia-richtext-1.0"><div xmlns="http://www.coremedia.com/2003/richtext-1.0" xmlns:xlink="http://www.w3.org/1999/xlink"><p><br/></p></div></notes>
+<infoType><link href="../../../../../Options/Informationstypen/FAQ/Basiswissen.xml" path="/Sites/Wins/Germany/German/Options/Informationstypen/FAQ/Basiswissen"/></infoType>
+<mainCategory><link href="../../../../../../../../../Settings/Taxonomies/Kategorien/Testrelevant%20Festnetz.xml" path="/Settings/Taxonomies/Kategorien/Testrelevant%20Festnetz"/></mainCategory>
+<subCategories><link href="../../../../../../../../../Settings/Taxonomies/Kategorien/Produkte%2C%20Tarife%20%26%20Optionen.xml" path="/Settings/Taxonomies/Kategorien/Produkte%2C%20Tarife%20%26%20Optionen"/><link href="../../../../../../../../../Settings/Taxonomies/Kategorien/FAQ.xml" path="/Settings/Taxonomies/Kategorien/FAQ"/></subCategories>
+<orderProtocol><link href="467900%20Auftragsprotokoll.xml" path="/Sites/Wins/Germany/German/FAQ/00_Basiswissen/testrelevant/00_Festnetz/2023%20Welche%20Vorteile%20bietet%20die%20Megasport%20Option%3F/467900%20Auftragsprotokoll"/></orderProtocol>
+<descriptions/>
+<editorialInformation/>
+<specifics/>
+<updateInformation><link href="467900%20Update-Info%2028%2E03%2E2023.xml" path="/Sites/Wins/Germany/German/FAQ/00_Basiswissen/testrelevant/00_Festnetz/2023%20Welche%20Vorteile%20bietet%20die%20Megasport%20Option%3F/467900%20Update-Info%2028%2E03%2E2023"/></updateInformation>
+<channel><link href="../../../../../../../../../Settings/Taxonomies/Channel/Basiswissen.xml" path="/Settings/Taxonomies/Channel/Basiswissen"/><link href="../../../../../../../../../Settings/Taxonomies/Channel/TV.xml" path="/Settings/Taxonomies/Channel/TV"/></channel>
+<picture/>
+<linkGroups><link href="467900%20weitere%20Informationen.xml" path="/Sites/Wins/Germany/German/FAQ/00_Basiswissen/testrelevant/00_Festnetz/2023%20Welche%20Vorteile%20bietet%20die%20Megasport%20Option%3F/467900%20weitere%20Informationen"/></linkGroups>
+<gbg/>
+<contact/>
+<banner/>
+<alias></alias>
+<employeeRestricted>1</employeeRestricted>
+<dealerRestricted>0</dealerRestricted>
+<partnerRestricted>0</partnerRestricted>
+<relevantPeopleId>2489</relevantPeopleId>
+<relatedList/>
+<answer grammarName="coremedia-richtext-1.0"><div xmlns="http://www.coremedia.com/2003/richtext-1.0" xmlns:xlink="http://www.w3.org/1999/xlink"><p class="p--heading-2">Das müsst ihr aktiv wissen:</p><ul><li>"<strong>MegaSport Option</strong>" bietet die <strong>Live-Sportpakete der Streaming-Anbieter WOW Live-Sport, DAZN sowie MagentaSport aus einer Hand</strong></li><li>Live- Sport vereint in einem Paket bei MagentaTV</li><li>Grundlage: MagentaTV Vertrag </li></ul></div></answer>
+<advancedAnswers><link href="467900%20Erweiterte%20Antwort.xml" path="/Sites/Wins/Germany/German/FAQ/00_Basiswissen/testrelevant/00_Festnetz/2023%20Welche%20Vorteile%20bietet%20die%20Megasport%20Option%3F/467900%20Erweiterte%20Antwort"/></advancedAnswers>
+<hints/>
+</DTFAQ>

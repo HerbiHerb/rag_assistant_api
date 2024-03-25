@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<DTFAQ folder="/Sites/Wins/Germany/German/FAQ/00_Basiswissen/testrelevant/00_Festnetz/2023 Kann ich die MagentaTV App auch im Ausland nutzen?" name="Kann ich die MagentaTV App auch im Ausland nutzen?" xmlns:cmexport="http://www.coremedia.com/2012/cmexport">
+<externalRefId></externalRefId>
+<locale></locale>
+<master/>
+<viewtype/>
+<localSettings><Struct xmlns="http://www.coremedia.com/2008/struct" xmlns:xlink="http://www.w3.org/1999/xlink">
+<StructProperty Name="attributes">
+<Struct>
+<StructProperty Name="geschaeftsfeld">
+<Struct>
+<BooleanProperty Name="mandatory">true</BooleanProperty>
+<LinkProperty Name="attr" LinkType="coremedia:///cap/contenttype/Content_" xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Gesch%C3%A4ftsfeld.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Gesch%C3%A4ftsfeld"/>
+<LinkListProperty Name="value" LinkType="coremedia:///cap/contenttype/Content_">
+<Link xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Attribut-Optionen/Mobilfunk.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Attribut-Optionen/Mobilfunk"/>
+<Link xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Attribut-Optionen/Festnetz.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Attribut-Optionen/Festnetz"/>
+</LinkListProperty>
+</Struct>
+</StructProperty>
+<StructProperty Name="segment">
+<Struct>
+<BooleanProperty Name="mandatory">true</BooleanProperty>
+<LinkProperty Name="attr" LinkType="coremedia:///cap/contenttype/Content_" xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Segment.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Segment"/>
+<LinkListProperty Name="value" LinkType="coremedia:///cap/contenttype/Content_">
+<Link xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Attribut-Optionen/PK.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Attribut-Optionen/PK"/>
+</LinkListProperty>
+</Struct>
+</StructProperty>
+<StructProperty Name="tariffamilie">
+<Struct>
+<BooleanProperty Name="mandatory">false</BooleanProperty>
+<LinkProperty Name="attr" LinkType="coremedia:///cap/contenttype/Content_" xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Tariffamilie.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Tariffamilie"/>
+</Struct>
+</StructProperty>
+<StructProperty Name="hersteller">
+<Struct>
+<BooleanProperty Name="mandatory">false</BooleanProperty>
+<LinkProperty Name="attr" LinkType="coremedia:///cap/contenttype/Content_" xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Hersteller.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Hersteller"/>
+</Struct>
+</StructProperty>
+<StructProperty Name="produkttyp">
+<Struct>
+<BooleanProperty Name="mandatory">false</BooleanProperty>
+<LinkProperty Name="attr" LinkType="coremedia:///cap/contenttype/Content_" xlink:href="coremedia:///cap/resources/../../../../../Options/Attribute/Produkttyp.xml" cmexport:path="/Sites/Wins/Germany/German/Options/Attribute/Produkttyp"/>
+</Struct>
+</StructProperty>
+</Struct>
+</StructProperty>
+</Struct></localSettings>
+<linkedSettings/>
+<resourceBundles2/>
+<segment></segment>
+<title>Kann ich die MagentaTV App auch im Ausland nutzen?</title>
+<htmlTitle></htmlTitle>
+<keywords>process/139635</keywords>
+<htmlDescription></htmlDescription>
+<subjectTaxonomy/>
+<locationTaxonomy/>
+<contexts/>
+<teaserTitle></teaserTitle>
+<pictures/>
+<related/>
+<authors/>
+<children/>
+<hidden>0</hidden>
+<javaScript/>
+<css/>
+<theme/>
+<internallyRestricted>1</internallyRestricted>
+<infoType><link href="../../../../../Options/Informationstypen/FAQ/Basiswissen.xml" path="/Sites/Wins/Germany/German/Options/Informationstypen/FAQ/Basiswissen"/></infoType>
+<mainCategory><link href="../../../../../../../../../Settings/Taxonomies/Kategorien/Testrelevant%20Festnetz.xml" path="/Settings/Taxonomies/Kategorien/Testrelevant%20Festnetz"/></mainCategory>
+<subCategories><link href="../../../../../../../../../Settings/Taxonomies/Kategorien/Grundlagen%20Technik%20%26%20Netze.xml" path="/Settings/Taxonomies/Kategorien/Grundlagen%20Technik%20%26%20Netze"/><link href="../../../../../../../../../Settings/Taxonomies/Kategorien/FAQ.xml" path="/Settings/Taxonomies/Kategorien/FAQ"/></subCategories>
+<orderProtocol><link href="271062%20Auftragsprotokoll%20QS.xml" path="/Sites/Wins/Germany/German/FAQ/00_Basiswissen/testrelevant/00_Festnetz/2023%20Kann%20ich%20die%20MagentaTV%20App%20auch%20im%20Ausland%20nutzen%3F/271062%20Auftragsprotokoll%20QS"/></orderProtocol>
+<descriptions/>
+<editorialInformation/>
+<specifics/>
+<updateInformation><link href="271062%20Update-Info%2028%2E03%2E2023.xml" path="/Sites/Wins/Germany/German/FAQ/00_Basiswissen/testrelevant/00_Festnetz/2023%20Kann%20ich%20die%20MagentaTV%20App%20auch%20im%20Ausland%20nutzen%3F/271062%20Update-Info%2028%2E03%2E2023"/></updateInformation>
+<channel><link href="../../../../../../../../../Settings/Taxonomies/Channel/Basiswissen.xml" path="/Settings/Taxonomies/Channel/Basiswissen"/><link href="../../../../../../../../../Settings/Taxonomies/Channel/Festnetz.xml" path="/Settings/Taxonomies/Channel/Festnetz"/><link href="../../../../../../../../../Settings/Taxonomies/Channel/Mobilfunk.xml" path="/Settings/Taxonomies/Channel/Mobilfunk"/></channel>
+<picture/>
+<linkGroups><link href="271062%20weitere%20Informationen.xml" path="/Sites/Wins/Germany/German/FAQ/00_Basiswissen/testrelevant/00_Festnetz/2023%20Kann%20ich%20die%20MagentaTV%20App%20auch%20im%20Ausland%20nutzen%3F/271062%20weitere%20Informationen"/></linkGroups>
+<gbg/>
+<contact/>
+<banner/>
+<alias></alias>
+<employeeRestricted>1</employeeRestricted>
+<dealerRestricted>0</dealerRestricted>
+<partnerRestricted>0</partnerRestricted>
+<relevantPeopleId>2489</relevantPeopleId>
+<relatedList/>
+<answer grammarName="coremedia-richtext-1.0"><div xmlns="http://www.coremedia.com/2003/richtext-1.0" xmlns:xlink="http://www.w3.org/1999/xlink"><p class="p--heading-2">Das müsst ihr aktiv wissen:</p><ul><li>Die Nutzung ist <strong>in allen EU-Ländern ohne Einschränkungen</strong> (Live-TV, VoD, Aufnahmen) verfügbar </li><li><strong>Voraussetzungen</strong>: Deutsche Wohnadresse </li><li>In <strong>nicht EU-Ländern </strong>ist jegliche Videoübertragung <strong>gesperrt</strong></li></ul></div></answer>
+<advancedAnswers><link href="271062%20erweiterte%20Antwort.xml" path="/Sites/Wins/Germany/German/FAQ/00_Basiswissen/testrelevant/00_Festnetz/2023%20Kann%20ich%20die%20MagentaTV%20App%20auch%20im%20Ausland%20nutzen%3F/271062%20erweiterte%20Antwort"/></advancedAnswers>
+<hints><link href="271062%20hinweis.xml" path="/Sites/Wins/Germany/German/FAQ/00_Basiswissen/testrelevant/00_Festnetz/2023%20Kann%20ich%20die%20MagentaTV%20App%20auch%20im%20Ausland%20nutzen%3F/271062%20hinweis"/></hints>
+</DTFAQ>

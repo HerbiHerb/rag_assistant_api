@@ -1,0 +1,11 @@
+{
+  "agent_executor": { "selector": "LLMSingleActionAgent" },
+  "language_model":
+    {
+      "service": "AzureOpenAI",
+      "model_name": "gpt-35-turbo",
+      "deployment_name": "gpt-35-turbo",
+      "temp": 0.0,
+    },
+  "vector_db": { "db_source_path": None, "db_type": "chroma" },
+}

@@ -1,0 +1,57 @@
+KKH Standpunkt      Gesetz für eine bessere Versorgung durch    Digitalisierung und Innovation (GKV-DVG)    September 2019 – Stand Kabinettsbeschluss   
+
+ 
+
+ 
+
+ 
+
+  Künstliche  Intelligenz  und  Big  Data  halten  Einzug  in  das  Gesundheitssystem.  Die  digitale  Transformation des Gesundheitswesens betrifft Leistungserbringer, Leistungsfinanzierer und  Versicherte gleichermaßen. Der kürzlich vom Bundeskabinett verabschiedete Entwurf eines  Gesetzes für eine bessere Versorgung durch Digitalisierung und Innovation („DVG“) hat zum  Ziel, den digitalen Wandel des Gesundheitssystems zu gestalten und nicht zu erleiden. Diese  grundsätzliche Ausrichtung ist richtig. Zu Recht hat der beschlossene Gesetzentwurf einige  ursprünglich  geplante  Regelungen  noch  einmal  zurückgestellt.  Diese  sollen  in  einem  separaten  Datenschutz-Gesetz  noch  einmal  grundsätzlich  und  ohne  Zeitdruck  diskutiert  werden. Dies ist mit Blick auf die Tragweite der geplanten Maßnahmen sachgerecht.  
+
+Leistungsanspruch auf digitale Gesundheitsanwendungen 
+
+neue 
+
+Leistungsanspruch 
+
+auf 
+
+vorgesehene 
+
+vom  Gesetzentwurf 
+
+digitale  Der  Gesundheitsanwendungen  ist  grundsätzlich  positiv  zu  werten.  Dieser  kann  künftig  sicherstellen,  dass  GKV-Versicherte  auch  bei  digitalen  Versorgungsangeboten  Zugang  zur  aktuell bestmöglichen Versorgung erhalten. Jedoch sollte auch hier der Nutzen im Vergleich  zu  „analogen“  Behandlungsangeboten  nachgewiesen  werden.  Die  bloße  Überführung  analoger Versorgungsangebote in einen digitalen Kontext reicht nicht aus. Denkbar wäre z.B.  ein  digitales  Tagebuch,  das  die  Einträge  seiner  Nutzer  nicht  nur  dokumentiert  sondern  auswertet und Ihnen hilfreiche Tipps für den Alltag liefert. Ein Zusatznutzen muss letztlich klar  erkennbar werden. Grundsätzlich ist für die Zukunft darauf zu achten, dass auch für digitale  Anwendungen  ab  einer  bestimmten  Risikoklasse  das  etablierte  und  bewährte  Methodenbewertungsverfahren genutzt werden muss.   Neue Anwendungen bedeuten nicht immer automatisch eine Verbesserung der Versorgung.  Deshalb  muss  im  Mittelpunkt aller digitalen  Anwendungen  der  Nutzen für  den  Versicherten  und  den  Patienten  stehen.  Digitale  Anwendungen  müssen  evaluiert  und  ihre  Risiken  berücksichtigt werden. Es gilt, eHealth- und Big-Data-Anwendungen im Sinne der Versicherten  überlegt einzusetzen. 
+
+Zugang zu Daten sorgfältig regeln 
+
+Aus  Sicht  der  KKH  ist  es  wünschenswert,  dass  auch  Krankenkassen  mit  Einwilligung  des  Versicherten ein Zugriffsrecht auf die in der ePA gespeicherten medizinischen Daten erhalten,  damit  den  Versicherten  von  Seiten  der  Krankenkassen  Angebote  für  eine  zielgerichtete  Gesundheitsversorgung  unterbreitet  werden  können.  Hier  bedarf  es  lediglich  einer  gesetzlichen Ermächtigung der Krankenkassen über die §§ 284 und 291a SGB V.  Im Zuge der Digitalisierung besteht das Risiko, dass sich neue, stark kommerziell orientierte  und wenig regulierte Teilnehmer (z.B. Amazon & Co.) am Markt etablieren und Versicherte   
+
+                                                                                         
+
+nicht  nach  objektiv  am  medizinischen  Bedarf  orientierten  sondern  nach  gewinnorientierten  Kriterien durch das Gesundheitssystem steuern. Die Entscheidung über die Auswertung der  Daten muss daher stets in den Händen des Versicherten liegen. Er muss jederzeit über die  Nutzung derselben entscheiden können. Eine selbstverwaltete Organisation kann hierfür ein  guter  Gatekeeper  im  Sinne  der  Versicherten  sein.  Insofern  ist  es  zu  begrüßen,  dass  die  Bundesregierung ihren ursprünglichen Gesetzentwurf in diesem Punkt angepasst hat und die  Ausweitung der Inhalte und Regelungen zum Zugriff auf die elektronische Patientenakte (ePa)  in  einem  separaten  Gesetz  zu  einem  späteren  Zeitpunkt  regeln  wird.  Somit  kann  dieses  sensible Thema  noch einmal grundsätzlich diskutiert werden.  
+
+Innovationsförderung durch Dritte  
+
+Krankenkassen werden in die Lage versetzt, digitale Versorgungsinnovationen - alleine oder  unter Einbindung Dritter - zu entwickeln oder zu fördern, u.a. auch über Kapitalbeteiligungen.  Es erschließt sich nicht, inwiefern die GKV mit den solidarischen Beitragsgeldern hier praktisch  als  Hochrisikokapitalgeber  fungieren  darf,  während  an  anderer  Stelle  die  Investition  der  gleichen Beitragsgelder in Kapitalanlagen den strengst möglichen Kriterien unterworfen wird.  Hier wäre ein einheitlicher und klarer politischer Kompass wünschenswert.  Erfreulich  sind  hingegen  die  Pläne,  dass  zur  Förderung  dieser  Innovationen  die  Kranken- kassen  auch  die  ihnen  vorliegenden  Routinedaten  auswerten  dürfen.  Die  versicherten- bezogenen Daten sind dabei zu pseudonymisieren und dürfen nicht an Dritte weitergegeben  werden.  Außerdem  wird  es  Krankenkassen  ermöglicht,  mit  Hilfe  dieser  Innovationen  die  Versorgung zu verbessern oder Versicherte mit Hilfe vorliegender, personenbezogener Daten  passende  Versorgungsangebote  zu  machen,  soweit  Versicherte  dem  bei  erster  Kontaktaufnahme zugestimmt haben. Dies stellt erhebliche Erweiterungen des Spielraums der  Krankenkassen im digitalen Versorgungsmanagement dar und wird einen klaren Mehrwert für  die Versicherten schaffen.  
+
+Marktgerechte Preise  
+
+Das DVG sieht in seiner Kabinettsfassung zu Recht vor, die Höhe der zu erstattenden Preise  für digitale Anwendungen in einem Verhandlungsprozess zwischen Hersteller und Kassen zu  klären. Jedoch sollte der Verhandlungspreis zu jeder Zeit maßgeblich sein, also auch im ersten  Jahr und  während  einer  möglichen Erprobungsphase – hier  sind deutliche  Änderungen am  Gesetzentwurf notwendig. Eine Vergütung nach reinen Herstellerpreisen – wenn auch nur für  einen Übergangszeitraum – widerspricht dem Wirtschaftlichkeitsgebot. Insbesondere besteht  hier  auch  die  Gefahr,  dass  durch  die  regelmäßige  Weiterentwicklung  der  digitalen  Anwendungen  neuartige  Produkte  entstehen,  die  dann  womöglich  wieder  der  freien  Preisgestaltung der Erprobungsphase unterliegen. Eine solche Entwicklung ist zu vermeiden.  
+
+Extrabudgetäre Vergütungen für Selbstverständlichkeiten 
+
+Es  erschließt  sich  nicht,  dass  bei  der  Einführung  der  ePA  Ärzte  und  Krankenhäuser  Sondervergütungen zur Speicherung der Daten in der elektronischen Patientenakte erhalten  sollen. Diese sind einer guten Versorgung verpflichtet und sollten daher auch ohne finanzielle  Anreize an einer funktionierenden und gepflegten digitalen Patientenakte interessiert sein. Die  Behandlungsdokumentation  wird  zudem  bereits  über  die  Grundpauschale  vergütet.  Ein 
+
+ 
+
+                                                                                         
+
+vergütungsfähiger  Mehraufwand  Praxissoftware auf die Elektronische Patientenakte ist daher nicht erkennbar. 
+
+für  die  Übertragung  der  Patientendaten  aus  der 
+
+Verlängerung des Innovationsfonds 
+
+Die Verlängerung des Innovationsfonds bei verringerter Fördersumme ist richtig und vor dem  Hintergrund des übergeordneten Ziels der Weiterentwicklung der Versorgung zu begrüßen.  Der  Fonds  dient  der  Weiterentwicklung  der  Versorgung  durch  innovative  Ansätze.  Innovationen in diesem Sinne sind Ansätze und Ideen, die ein disruptives Potential besitzen  und eine Veränderung der Versorgung perspektivisch bewirken könnten. Ideen entstehen in  der  Regel  aus  der  Versorgung  heraus.  Die  Förderung  der  neuen  Versorgungsformen  soll  zukünftig in der Regel in einem zweistufigen Verfahren erfolgen. Dabei sollen im ersten Schritt  die Konzeptentwicklung und die Ausarbeitung qualifizierter Anträge für bis zu sechs Monate  gefördert werden und im zweiten Schritt die Durchführung dieser Anträge gefördert werden.  Gerade die erste Stufe der Konzeptionsphase bietet Chancen neue Ansätze auszuprobieren.  So  kann  ggf.  einem  nach  mehreren  Förderwellen  ggf.  bereits  „gesättigtem“  Markt  entgegengewirkt werden.    Als schwierig könnten sich hingegen die neuen Regelungen zum Expertenpool herausstellen.  Nach  dem  Kabinettsentwurf  wird  dieser  den  bisher  erfolgreich  arbeitenden  Expertenbeirat  ersetzen.  Der Expertenpool  wird  wesentlich  breiter  aufgestellt  und  könnte  trotz der fachlich  vorhandenen Expertise der Mitglieder unnötig hohe bürokratische Hürden erzeugen.      
+
+  Impressum  Hogne-Holm Heyder  Leiter Berliner Büro  Schumannstraße 2, 10117 Berlin  Tel.: 030 2844506-1012, E-Mail: politik@kkh.de
