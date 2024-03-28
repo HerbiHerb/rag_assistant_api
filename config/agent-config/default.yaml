@@ -2,7 +2,7 @@
   "agent_executor": { "selector": "LLMSingleActionAgent" },
   "language_model":
     {
-      "service": "AzureOpenAI",
+      "service": "OpenAI",
       "model_name": "gpt-35-turbo",
       "deployment_name": "gpt-35-turbo",
       "temp": 0.0,

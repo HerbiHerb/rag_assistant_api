@@ -10,7 +10,7 @@
     "meta_prefix":"meta_",
   },
   "pinecone_db":{
-    "index_name": "kkh-index",
+    "index_name": "jarvis-index",
     "dimension": 1536,
     "top_k": 5,
     "metric": "cosine",

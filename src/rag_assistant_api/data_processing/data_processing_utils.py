@@ -1,5 +1,5 @@
 from typing import List
-from langchain_openai import AzureOpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from bs4 import BeautifulSoup
 from langchain.text_splitter import TokenTextSplitter
 
@@ -11,7 +11,7 @@ def check_for_ignore_prefix(file_name: str, ignore_prefix: str):
     return False
 
 
-def get_embedding(text, embedding_model: AzureOpenAIEmbeddings):
+def get_embedding(text, embedding_model: OpenAIEmbeddings):
     text = text.replace("\n", " ")
     return embedding_model.embed_query(text)
 
@@ -33,14 +33,18 @@ def parse_xml_beautiful_soup(content):
     return result_dict
 
 
-def split_txt_file(text: str, text_splitter: TokenTextSplitter, chunk_size: int = 512, chunk_overlap=50) -> List[str]:
+def split_txt_file(
+    text: str, text_splitter: TokenTextSplitter, chunk_size: int = 512, chunk_overlap=50
+) -> List[str]:
     return text_splitter.split_text(text)
 
 
 def extract_text(element):
     text = ""
     for child in element.children:  # Durchlaufe alle direkten Kinder des Elements
-        if child.name is not None:  # Überprüfe, ob das Kind ein Element ist (nicht nur Text)
+        if (
+            child.name is not None
+        ):  # Überprüfe, ob das Kind ein Element ist (nicht nur Text)
             text += extract_text(child) + " "
         elif child != None and len(child) > 0:
             text += child + " "

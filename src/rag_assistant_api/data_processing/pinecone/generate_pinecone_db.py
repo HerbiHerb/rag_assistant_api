@@ -5,15 +5,26 @@ from typing import List
 import sys, os, uuid
 import yaml
 import json
-from langchain_openai import AzureOpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import TokenTextSplitter
 from ..config_schemas import PineconeConfig, DataProcessingConfig
-from ..data_processing_utils import parse_xml_beautiful_soup, split_txt_file, get_embedding, check_for_ignore_prefix
+from ..data_processing_utils import (
+    parse_xml_beautiful_soup,
+    split_txt_file,
+    get_embedding,
+    check_for_ignore_prefix,
+)
 from ...credentials.setup_credentials import set_api_credentials
 from ...base_classes.database_handler import DatabaseHandler
 
 
-def process_file(file_path: str, meta_file_path: str, text_splitter, embedding_model: str, database_handler: DatabaseHandler):
+def process_file(
+    file_path: str,
+    meta_file_path: str,
+    text_splitter,
+    embedding_model: str,
+    database_handler: DatabaseHandler,
+):
     """
     Processes a single text file by dividing it into text sections,
     creating embeddings for the sections, and uploading the data to Pinecone.
@@ -32,27 +43,39 @@ def process_file(file_path: str, meta_file_path: str, text_splitter, embedding_m
             with open(meta_file_path, "r", encoding="utf-8") as meta_file:
                 meta_daten = meta_file.read()
         except:
-            print('No Meta Data for file:', str(meta_file_path))
+            print("No Meta Data for file:", str(meta_file_path))
             meta_daten = {}
-        upload_chunks_in_batches(text_chunks, meta_daten, embedding_model, file_path, meta_file_path, database_handler)
+        upload_chunks_in_batches(
+            text_chunks,
+            meta_daten,
+            embedding_model,
+            file_path,
+            meta_file_path,
+            database_handler,
+        )
 
 
 def empty_database(database_handler: DatabaseHandler) -> None:
     """
     Empties the database by deleting and re-creating it
-    
+
     Args:
         database_handler (DatabaseHandler): Database methods
     """
     try:
         database_handler.delete_database()
     except:
-        print('No Database to delete')
+        print("No Database to delete")
     database_handler.create_database()
 
 
 def upload_chunks_in_batches(
-    text_chunks: List[str], meta_daten: str, embedding_model: str, file_name: str, meta_file_path: str, database_handler: DatabaseHandler
+    text_chunks: List[str],
+    meta_daten: str,
+    embedding_model: str,
+    file_name: str,
+    meta_file_path: str,
+    database_handler: DatabaseHandler,
 ):
     """
     Uploads text chunks in batches to the Pinecone database.
@@ -74,7 +97,11 @@ def upload_chunks_in_batches(
             metadata_json["text"] = chunk
             metadata_json["file"] = file_name
             metadata_json["meta_file"] = meta_file_path
-            vector_data = {"id": unique_id, "values": embedding, "metadata": metadata_json}
+            vector_data = {
+                "id": unique_id,
+                "values": embedding,
+                "metadata": metadata_json,
+            }
             curr_batch.append(vector_data)
 
             if len(curr_batch) == database_handler.data_processing_config.batch_size:
@@ -101,15 +128,25 @@ def generate_database(database_handler: DatabaseHandler):
     meta_prefix = config_data["data_processing"]["meta_prefix"]
     set_api_credentials()
     empty_database(database_handler=database_handler)
-    embedding_model = AzureOpenAIEmbeddings(model=database_handler.data_processing_config.embedding_model)
+    embedding_model = OpenAIEmbeddings(model="text-embedding-ada-002")
     text_splitter = TokenTextSplitter(
         chunk_size=database_handler.data_processing_config.chunk_size,
         chunk_overlap=database_handler.data_processing_config.overlap,
     )
 
-    for subdir, dirs, files in os.walk(database_handler.data_processing_config.data_folder_fp):
+    for subdir, dirs, files in os.walk(
+        database_handler.data_processing_config.data_folder_fp
+    ):
         for file in files:
-            if file.endswith(".txt") and not check_for_ignore_prefix(file, ignore_prefix="meta"):
+            if file.endswith(".txt") and not check_for_ignore_prefix(
+                file, ignore_prefix="meta"
+            ):
                 file_path = os.path.join(subdir, file)
                 meta_file_path = os.path.join(subdir, meta_prefix + file)
-                process_file(file_path, meta_file_path, text_splitter, embedding_model, database_handler=database_handler)
+                process_file(
+                    file_path,
+                    meta_file_path,
+                    text_splitter,
+                    embedding_model,
+                    database_handler=database_handler,
+                )

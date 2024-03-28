@@ -10,7 +10,7 @@
             "request": "launch",
             "module": "src.rag_assistant_api.main",
             //"module": "src.llm_assistant_api.data_processing.chroma.make_chromadb",
-            //"module": "src.llm_assistant_api.database_generation_start",
+            //"module": "src.rag_assistant_api.database_generation_start",
             //"module": "src.llm_assistant_api.agents.langchain_agent.langchain_agent",
             "justMyCode": true
         }
