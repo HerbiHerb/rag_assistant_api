@@ -4,6 +4,7 @@ import yaml
 import json
 from copy import deepcopy
 from flask import jsonify, request
+import pinecone
 from .credentials.setup_credentials import set_openai_credentials, set_api_credentials
 from .init_flask_app import app
 from .database_models.database_models import Conversation, User
@@ -13,11 +14,14 @@ from .agents.azure_openai_rag_model.rag_model import (
 )
 from .agents.agent_utils import insert_initial_system_msg, extract_openai_chat_messages
 from .agents.prompts import INITIAL_SYSTEM_MSG
-from .data_processing.azure.azure_potgresql_handler import VectorDB, ArticleTable
 from .agents.openai_functions_agent.openai_functions_agent import (
     OpenAIFunctionsAgent,
     initialize_openai_functions_agent,
 )
+from .data_processing.config_schemas import PineconeConfig, DataProcessingConfig
+from .data_processing.pinecone.pinecone_database_handler import PineconeDatabaseHandler
+from .data_processing.pinecone.generate_pinecone_db import generate_database
+from .credentials.setup_credentials import set_openai_credentials, set_api_credentials
 
 
 @app.route("/register_new_user", methods=["POST"])
@@ -181,6 +185,28 @@ def get_chat_messages():
     except Exception as e:
         print(e)
         return f"An error occured {e}"
+
+
+@app.route("/generate_vector_db", methods=["GET"])
+def generate_vector_db():
+    """
+    Generate the vector database.
+
+    Returns:
+        JSON response containing the information of the created database.
+    """
+    with open(os.getenv("VECTOR_DB_CONFIG_FP"), "r") as file:
+        config_data = yaml.safe_load(file)
+    data_processing_config = DataProcessingConfig(**config_data["data_processing"])
+    pinecone_config = PineconeConfig(**config_data["pinecone_db"])
+    database_handler = PineconeDatabaseHandler(
+        index=pinecone.Index(pinecone_config.index_name),
+        data_processing_config=data_processing_config,
+        pinecone_config=PineconeConfig(**config_data["pinecone_db"]),
+    )
+    test = 0
+    generate_database(database_handler=database_handler)
+    return f"Database generated"
 
 
 def main():
