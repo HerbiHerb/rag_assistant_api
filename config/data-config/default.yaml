@@ -1,7 +1,7 @@
 {
   "data_processing":{
-    "data_folder_fp": "src/data/raw_data/llm_assistant_txt_files/",
-    "batch_size": 100,
+    "data_folder_fp": "src/data/raw_data/rag_assistant_txt_files/",
+    "batch_size": 10,
     "chunk_size": 384,
     "overlap": 80,
     "embedding_model": "text-embedding-ada-002",
@@ -10,20 +10,10 @@
     "meta_prefix":"meta_",
   },
   "pinecone_db":{
-    "index_name": "kkh-index",
+    "index_name": "jarvis-index",
     "dimension": 1536,
     "top_k": 5,
     "metric": "cosine",
     "config_credentials":"config/credentials",
-  },
-   "chroma_db":{
-    "collection_name": "llm_assistant_txt_files",
-    "data_folder_fp": "src/data/raw_data/",
-    "config_credentials":"config/credentials",
-    "persist_directory": "src/data/raw_data/chromadb_persistent",
-    "embedding_model": "text-embedding-ada-002",
-    "max_token_size": 256,
-    "tokenizer_model": "text-davinci-003",
-
   },
 }

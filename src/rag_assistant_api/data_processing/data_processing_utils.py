@@ -1,5 +1,6 @@
 from typing import List
-from langchain_openai import AzureOpenAIEmbeddings
+import re
+from langchain_openai import OpenAIEmbeddings
 from bs4 import BeautifulSoup
 from langchain.text_splitter import TokenTextSplitter
 
@@ -11,7 +12,7 @@ def check_for_ignore_prefix(file_name: str, ignore_prefix: str):
     return False
 
 
-def get_embedding(text, embedding_model: AzureOpenAIEmbeddings):
+def get_embedding(text, embedding_model: OpenAIEmbeddings):
     text = text.replace("\n", " ")
     return embedding_model.embed_query(text)
 
@@ -33,14 +34,27 @@ def parse_xml_beautiful_soup(content):
     return result_dict
 
 
-def split_txt_file(text: str, text_splitter: TokenTextSplitter, chunk_size: int = 512, chunk_overlap=50) -> List[str]:
-    return text_splitter.split_text(text)
+def split_txt_file(text: str, text_splitter: TokenTextSplitter) -> list[str]:
+    result_chunks = []
+    chapter_chunks = text.split("$CHAPTER$")
+    for chapter in chapter_chunks:
+        chapter_name = [section for section in chapter.split("\n") if len(section) > 0]
+        if len(chapter_name) == 0:
+            continue
+        chapter_name = chapter_name[0]
+        text_chunks = text_splitter.split_text(chapter)
+        for chunk in text_chunks:
+            result_chunks.append({"text": chunk, "chapter": chapter_name})
+
+    return result_chunks
 
 
 def extract_text(element):
     text = ""
     for child in element.children:  # Durchlaufe alle direkten Kinder des Elements
-        if child.name is not None:  # Überprüfe, ob das Kind ein Element ist (nicht nur Text)
+        if (
+            child.name is not None
+        ):  # Überprüfe, ob das Kind ein Element ist (nicht nur Text)
             text += extract_text(child) + " "
         elif child != None and len(child) > 0:
             text += child + " "
