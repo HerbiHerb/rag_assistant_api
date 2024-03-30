@@ -3,9 +3,9 @@ from openai import AzureOpenAI
 from pydantic import BaseModel, Extra, Field
 from typing import Tuple, List
 from langchain_openai import OpenAIEmbeddings
-from ...data_processing.data_processing_utils import get_embedding
+from ...vector_database.data_processing_utils import get_embedding
 from ...base_classes.database_handler import DatabaseHandler
-from ...data_processing.pinecone.pinecone_database_handler import (
+from ...vector_database.pinecone.pinecone_database_handler import (
     PineconeDatabaseHandler,
 )
 

@@ -2,9 +2,9 @@ import os
 import sys, os, yaml
 import pinecone
 import yaml
-from .data_processing.config_schemas import PineconeConfig, DataProcessingConfig
-from .data_processing.pinecone.pinecone_database_handler import PineconeDatabaseHandler
-from .data_processing.pinecone.generate_pinecone_db import generate_database
+from .vector_database.config_schemas import PineconeConfig, DataProcessingConfig
+from .vector_database.pinecone.pinecone_database_handler import PineconeDatabaseHandler
+from .vector_database.pinecone.generate_pinecone_db import generate_database
 from .credentials.setup_credentials import set_openai_credentials, set_api_credentials
 
 

@@ -6,8 +6,8 @@ import pinecone
 from langchain_openai import AzureOpenAIEmbeddings, OpenAIEmbeddings
 from ...base_classes.agent_base import AgentBase
 from ..langchain_tools.tools import DocumentSearch
-from ...data_processing.config_schemas import PineconeConfig, DataProcessingConfig
-from ...data_processing.pinecone.pinecone_database_handler import (
+from ...vector_database.config_schemas import PineconeConfig, DataProcessingConfig
+from ...vector_database.pinecone.pinecone_database_handler import (
     PineconeDatabaseHandler,
 )
 

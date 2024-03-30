@@ -7,7 +7,7 @@ from flask import jsonify, request
 import pinecone
 from .credentials.setup_credentials import set_openai_credentials, set_api_credentials
 from .init_flask_app import app
-from .database_models.database_models import Conversation, User
+from .local_database.database_models import Conversation, User
 from .agents.azure_openai_rag_model.rag_model import (
     AzureOpenAIRAGModel,
     initialize_rag_model,
@@ -18,9 +18,9 @@ from .agents.openai_functions_agent.openai_functions_agent import (
     OpenAIFunctionsAgent,
     initialize_openai_functions_agent,
 )
-from .data_processing.config_schemas import PineconeConfig, DataProcessingConfig
-from .data_processing.pinecone.pinecone_database_handler import PineconeDatabaseHandler
-from .data_processing.pinecone.generate_pinecone_db import generate_database
+from .vector_database.config_schemas import PineconeConfig, DataProcessingConfig
+from .vector_database.pinecone.pinecone_database_handler import PineconeDatabaseHandler
+from .vector_database.pinecone.generate_pinecone_db import generate_database
 from .credentials.setup_credentials import set_openai_credentials, set_api_credentials
 
 
@@ -111,16 +111,10 @@ def execute_rag():
         chat_messages = insert_initial_system_msg(
             initial_system_msg=INITIAL_SYSTEM_MSG, chat_messages=chat_messages
         )
-    # rag_model = initialize_rag_model(
-    #     model_name="gpt-3.5-turbo-0125", embedding_model="text-embedding-ada-002"
-    # )
     rag_model = initialize_openai_functions_agent(
         model_name="gpt-3.5-turbo-0125", embedding_model="text-embedding-ada-002"
     )
     openai_chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
-    # agent_response, _, context_meta = rag_model.run(
-    #     query=str(query), chat_messages=deepcopy(openai_chat_messages)
-    # )
     agent_answer = rag_model.run(
         query=str(query), chat_messages=deepcopy(openai_chat_messages)
     )
