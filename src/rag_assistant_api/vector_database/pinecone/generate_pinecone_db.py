@@ -14,7 +14,6 @@ from ..data_processing_utils import (
     get_embedding,
     check_for_ignore_prefix,
 )
-from ...credentials.setup_credentials import set_api_credentials
 from ...base_classes.database_handler import DatabaseHandler
 
 
@@ -155,10 +154,10 @@ def generate_database(database_handler: DatabaseHandler):
     Args:
     - config: An instance of the PineconeConfig class with the necessary configurations.
     """
-    with open(os.environ["VECTOR_DB_CONFIG_FP"], "r") as file:
+    with open(os.environ["CONFIG_FP"], "r") as file:
         config_data = yaml.safe_load(file)
     meta_prefix = config_data["data_processing"]["meta_prefix"]
-    set_api_credentials()
+    # set_api_credentials()
     empty_database(database_handler=database_handler)
     embedding_model = OpenAIEmbeddings(model="text-embedding-ada-002")
     text_splitter = TokenTextSplitter(

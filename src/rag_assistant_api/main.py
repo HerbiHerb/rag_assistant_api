@@ -1,27 +1,23 @@
 import os
-from typing import List, Dict, Tuple
 import yaml
 import json
+import openai
 from copy import deepcopy
 from flask import jsonify, request
 import pinecone
-from .credentials.setup_credentials import set_openai_credentials, set_api_credentials
+from dotenv import load_dotenv
 from .init_flask_app import app
 from .local_database.database_models import Conversation, User
-from .agents.azure_openai_rag_model.rag_model import (
-    AzureOpenAIRAGModel,
-    initialize_rag_model,
+from .agents.agent_utils import (
+    insert_initial_system_msg,
+    extract_openai_chat_messages,
+    cleanup_function_call_messages,
 )
-from .agents.agent_utils import insert_initial_system_msg, extract_openai_chat_messages
 from .agents.prompts import INITIAL_SYSTEM_MSG
-from .agents.openai_functions_agent.openai_functions_agent import (
-    OpenAIFunctionsAgent,
-    initialize_openai_functions_agent,
-)
+from .agents.openai_functions_agent.openai_functions_agent import OpenAIFunctionsAgent
 from .vector_database.config_schemas import PineconeConfig, DataProcessingConfig
 from .vector_database.pinecone.pinecone_database_handler import PineconeDatabaseHandler
 from .vector_database.pinecone.generate_pinecone_db import generate_database
-from .credentials.setup_credentials import set_openai_credentials, set_api_credentials
 
 
 @app.route("/register_new_user", methods=["POST"])
@@ -111,21 +107,19 @@ def execute_rag():
         chat_messages = insert_initial_system_msg(
             initial_system_msg=INITIAL_SYSTEM_MSG, chat_messages=chat_messages
         )
-    rag_model = initialize_openai_functions_agent(
+    rag_model = OpenAIFunctionsAgent.initialize_openai_functions_agent(
         model_name="gpt-3.5-turbo-0125", embedding_model="text-embedding-ada-002"
     )
-    openai_chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
-    agent_answer = rag_model.run(
-        query=str(query), chat_messages=deepcopy(openai_chat_messages)
-    )
+    chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
+    chat_messages.append({"role": "user", "content": query})
+    agent_answer = rag_model.run(chat_messages=chat_messages)
+    chat_messages = cleanup_function_call_messages(chat_messages=chat_messages)
     context_meta = []
-    user_message = {"role": "user", "content": query}
     assistant_message = {
         "role": "assistant",
         "content": agent_answer.final_answer,
         "urls": [meta_entry["URL"] for meta_entry in context_meta],
     }
-    chat_messages.append(user_message)
     chat_messages.append(assistant_message)
     Conversation.update_chat_messages(conv_id=conv_id, chat_messages=chat_messages)
     return jsonify({"answer": agent_answer.final_answer, "meta": context_meta})
@@ -208,19 +202,18 @@ def main():
     Main function to initialize the Flask application.
     It sets up environment variables, loads configuration, and starts the Flask app.
     """
-    os.environ["AGENT_CONFIG_FP"] = "config/agent-config/default.yaml"
-    os.environ["CREDENTIALS_FP"] = "config/credentials/credentials.yaml"
-    os.environ["VECTOR_DB_CONFIG_FP"] = "config/data-config/default.yaml"
+    load_dotenv()
     with open(
-        os.environ["AGENT_CONFIG_FP"],
+        os.environ["CONFIG_FP"],
         "r",
     ) as file:
         config = yaml.safe_load(file)
     if config["language_model"]["service"] == "OpenAI":
-        set_openai_credentials()
-    elif config["language_model"]["service"] == "AzureOpenAI":
-        set_api_credentials()
-
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        pinecone.init(
+            api_key=os.getenv("PINECONE_API_KEY"),
+            environment=os.getenv("PINECONE_ENVIRONMENT"),
+        )
     app.run(host="0.0.0.0", port=8080, debug=True)
 
 
