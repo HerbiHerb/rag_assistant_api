@@ -100,9 +100,26 @@ class Conversation(db.Model):
             print(e)
 
 
+class Document(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    document_type = db.Column(db.Text, nullable=False)
+    document_text = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+
+    def save_document(user_id: int, document_type: str, document_text: str):
+        document = Document(
+            user_id=user_id, document_type=document_type, document_text=document_text
+        )
+        db.session.add(document)
+        db.session.commit()
+        return document.id
+
+
 class UserInformation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    information_type = db.Column(db.Text, nullable=False)
     information_text = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     def save_user_information(user_id: int, information_text: str):
         pass

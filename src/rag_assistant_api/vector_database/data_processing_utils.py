@@ -17,23 +17,6 @@ def get_embedding(text, embedding_model: OpenAIEmbeddings):
     return embedding_model.embed_query(text)
 
 
-def parse_xml_beautiful_soup(content):
-    bs_content = BeautifulSoup(content, "lxml")
-    title_node = bs_content.find("title")
-    answer_node = bs_content.find("answer")
-    keyword_node = bs_content.find("keywords")
-
-    title_text = extract_text(title_node)
-    answer_text = extract_text(answer_node)
-    keyword_text = extract_text(keyword_node)
-    result_dict = {
-        "question": title_text,
-        "answer": answer_text,
-        "keywords": keyword_text,
-    }
-    return result_dict
-
-
 def split_txt_file(text: str, text_splitter: TokenTextSplitter) -> list[str]:
     result_chunks = []
     chapter_chunks = text.split("$CHAPTER$")
@@ -49,13 +32,41 @@ def split_txt_file(text: str, text_splitter: TokenTextSplitter) -> list[str]:
     return result_chunks
 
 
-def extract_text(element):
-    text = ""
-    for child in element.children:  # Durchlaufe alle direkten Kinder des Elements
-        if (
-            child.name is not None
-        ):  # Überprüfe, ob das Kind ein Element ist (nicht nur Text)
-            text += extract_text(child) + " "
-        elif child != None and len(child) > 0:
-            text += child + " "
-    return text
+def extract_meta_data_values(
+    extracted_lines: list[str], meta_data_dict: dict[str, str]
+):
+    for key in meta_data_dict:
+        match_lines = [line for line in extracted_lines if key in line]
+        if len(match_lines) > 0:
+            extracted_values = re.findall(rf"{key}:?[\s]?(.*)", match_lines[0])
+            meta_data_dict[key] = (
+                extracted_values[0] if len(extracted_values) > 0 else None
+            )
+    return meta_data_dict
+
+
+def extract_meta_data(extraction_pattern: str, document_text: str):
+    document_text = document_text.replace("\r", "")
+    matches = re.findall(extraction_pattern, document_text)
+    meta_data_dict = {
+        "document_name": None,
+        "autor": None,
+        "date": None,
+        "genre": None,
+        "field": None,
+        "type": None,
+        "user_id": None,
+    }
+    if matches:
+        extracted_str_lines = matches[0].split("\n")
+        extracted_str_lines = [line for line in extracted_str_lines if len(line) > 0]
+        meta_data_dict = extract_meta_data_values(
+            extracted_lines=extracted_str_lines, meta_data_dict=meta_data_dict
+        )
+    return meta_data_dict
+
+
+def remove_meta_data_from_text(text: str):
+    splitted_text = text.split("$END_META_DATA")
+    if splitted_text:
+        return splitted_text[1]

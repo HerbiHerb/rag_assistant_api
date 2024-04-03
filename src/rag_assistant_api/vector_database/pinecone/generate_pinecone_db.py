@@ -9,50 +9,19 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import TokenTextSplitter
 from ..config_schemas import PineconeConfig, DataProcessingConfig
 from ..data_processing_utils import (
-    parse_xml_beautiful_soup,
     split_txt_file,
     get_embedding,
     check_for_ignore_prefix,
+    extract_meta_data,
+    remove_meta_data_from_text,
 )
 from ...base_classes.database_handler import DatabaseHandler
 
 
-def remove_meta_data_from_text(text: str):
-    splitted_text = text.split("$END_META_DATA")
-    if splitted_text:
-        return splitted_text[1]
-
-
-def extract_meta_data_values(
-    extracted_lines: list[str], meta_data_dict: dict[str, str]
-):
-    for key in meta_data_dict:
-        match_lines = [line for line in extracted_lines if key in line]
-        if len(match_lines) > 0:
-            extracted_values = re.findall(rf"{key}:?[\s]?(.*)", match_lines[0])
-            meta_data_dict[key] = (
-                extracted_values[0] if len(extracted_values) > 0 else None
-            )
-    return meta_data_dict
-
-
-def extract_meta_data(extraction_pattern: str, document_text: str):
-    matches = re.findall(extraction_pattern, document_text)
-    meta_data_dict = {
-        "document_name": None,
-        "autor": None,
-        "date": None,
-        "genre": None,
-        "field": None,
-        "type": None,
-    }
-    if matches:
-        extracted_str_lines = matches[0].split("\n")
-        extracted_str_lines = [line for line in extracted_str_lines if len(line) > 0]
-        meta_data_dict = extract_meta_data_values(
-            extracted_lines=extracted_str_lines, meta_data_dict=meta_data_dict
-        )
-    return meta_data_dict
+# def remove_meta_data_from_text(text: str):
+#     splitted_text = text.split("$END_META_DATA")
+#     if splitted_text:
+#         return splitted_text[1]
 
 
 def process_file(
@@ -181,3 +150,18 @@ def generate_database(database_handler: DatabaseHandler):
                     embedding_model,
                     database_handler=database_handler,
                 )
+
+
+def update_database(text: str, text_meta_data: dict, database_handler: DatabaseHandler):
+    embedding_model = OpenAIEmbeddings(model="text-embedding-ada-002")
+    text_splitter = TokenTextSplitter(
+        chunk_size=database_handler.data_processing_config.chunk_size,
+        chunk_overlap=database_handler.data_processing_config.overlap,
+    )
+    text_chunks_with_chapter = split_txt_file(text, text_splitter=text_splitter)
+    upload_chunks_in_batches(
+        text_chunks_with_chapter,
+        text_meta_data,
+        embedding_model,
+        database_handler,
+    )

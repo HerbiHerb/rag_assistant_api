@@ -9,7 +9,7 @@ from copy import deepcopy
 import tiktoken
 from langchain_openai import AzureOpenAIEmbeddings, OpenAIEmbeddings
 from ..openai_functions.function_definitions import TOOLS_LIST, PineconeDocumentSearch
-from ...base_classes.agent_base import AgentBase
+from ...base_classes.agent_base import OpenAIAgent
 from ...vector_database.config_schemas import PineconeConfig, DataProcessingConfig
 from ...vector_database.pinecone.pinecone_database_handler import (
     PineconeDatabaseHandler,
@@ -19,13 +19,8 @@ from ..exceptions import TokenLengthExceedsMaxTokenNumber
 from ..agent_utils import count_tokens_of_conversation, get_max_token_number
 
 
-class OpenAIFunctionsAgent(AgentBase, BaseModel):
-    openai_client: OpenAI
-    model_name: str
+class OpenAIFunctionsAgent(OpenAIAgent):
     available_functions: dict
-
-    class Config:
-        arbitrary_types_allowed = True
 
     @classmethod
     def initialize_openai_functions_agent(cls, model_name: str, embedding_model: str):
@@ -64,11 +59,8 @@ class OpenAIFunctionsAgent(AgentBase, BaseModel):
         )
         if num_tokens_in_messages_before > max_token_number:
             raise TokenLengthExceedsMaxTokenNumber
-        response = openai_client.chat.completions.create(
-            model=model_name,
-            messages=chat_messages,
-            tools=TOOLS_LIST,
-            tool_choice="auto",
+        response = self.openai_completion_call(
+            chat_messages=chat_messages, tools=TOOLS_LIST
         )
         curr_response_message = response.choices[0].message
         tool_calls = deepcopy(curr_response_message.tool_calls)
@@ -82,8 +74,6 @@ class OpenAIFunctionsAgent(AgentBase, BaseModel):
                 tool_call = tool_calls.pop(0)
                 final_answer, new_tool_calls, curr_response_message = (
                     self._handle_tool_call(
-                        openai_client=openai_client,
-                        model_name=model_name,
                         chat_messages=chat_messages,
                         tool_call=tool_call,
                         agent_answer_data=agent_answer_data,
@@ -97,10 +87,8 @@ class OpenAIFunctionsAgent(AgentBase, BaseModel):
 
     def _handle_tool_call(
         self,
-        openai_client: OpenAI,
-        model_name: str,
-        chat_messages: List[Dict[str, str]],
-        tool_call: List[Any],
+        chat_messages: list[dict[str, str]],
+        tool_call: list[Any],
         agent_answer_data: AgentAnswerData,
         available_functions: dict[callable],
     ):
@@ -118,11 +106,8 @@ class OpenAIFunctionsAgent(AgentBase, BaseModel):
                 "content": function_response,
             }
         )
-        second_response = openai_client.chat.completions.create(
-            model=model_name,
-            messages=chat_messages,
-            tools=TOOLS_LIST,
-            tool_choice="auto",
+        second_response = self.openai_completion_call(
+            chat_messages=chat_messages, tools=TOOLS_LIST
         )
         second_response_message = second_response.choices[0].message
         final_answer = second_response_message.content
@@ -134,7 +119,7 @@ class OpenAIFunctionsAgent(AgentBase, BaseModel):
             if hasattr(self.available_functions[function_name], "meta_data"):
                 meta_data = self.available_functions[function_name].meta_data
 
-    def run(self, chat_messages: List[Dict[str, str]]) -> AgentAnswerData:
+    def run(self, chat_messages: list[dict[str, str]]) -> AgentAnswerData:
         agent_answer = self._execute_function_calling(
             openai_client=self.openai_client,
             chat_messages=chat_messages,

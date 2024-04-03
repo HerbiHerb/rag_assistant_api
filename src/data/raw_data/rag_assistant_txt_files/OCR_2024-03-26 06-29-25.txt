@@ -5,6 +5,7 @@ date:
 genre: sachbuch
 field: psychology
 type: book
+user_id: 1
 $END_META_DATA
 
 $CHAPTER$Einleitung
