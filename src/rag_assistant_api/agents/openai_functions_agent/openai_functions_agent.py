@@ -66,58 +66,65 @@ class OpenAIFunctionsAgent(OpenAIAgent):
         tool_calls = deepcopy(curr_response_message.tool_calls)
         final_answer = curr_response_message.content
         agent_answer_data = AgentAnswerData(query_msg_idx=len(chat_messages) - 1)
-        # Step 2: check if the model wanted to call a function
+        # Check if the model wanted to call a function
         if tool_calls:
             while len(tool_calls) > 0:
                 print("TOOL_CALL")
                 chat_messages.append(curr_response_message)
-                tool_call = tool_calls.pop(0)
-                final_answer, new_tool_calls, curr_response_message = (
-                    self._handle_tool_call(
-                        chat_messages=chat_messages,
-                        tool_call=tool_call,
-                        agent_answer_data=agent_answer_data,
-                        available_functions=available_functions,
-                    )
+                self._add_function_call_information(
+                    chat_messages=chat_messages,
+                    tool_calls=tool_calls,
+                    agent_answer_data=agent_answer_data,
+                    available_functions=available_functions,
                 )
+
+                second_response = self.openai_completion_call(
+                    chat_messages=chat_messages, tools=TOOLS_LIST
+                )
+                second_response_message = second_response.choices[0].message
+                final_answer = second_response_message.content
+                new_tool_calls = deepcopy(second_response_message.tool_calls)
                 if new_tool_calls:
+                    # If the model wants to call new functions add them to the tool_calls
+                    chat_messages.append(second_response_message)
                     tool_calls.extend(new_tool_calls)
         agent_answer_data.final_answer = final_answer
         return agent_answer_data
 
-    def _handle_tool_call(
+    def _add_function_call_information(
         self,
         chat_messages: list[dict[str, str]],
-        tool_call: list[Any],
+        tool_calls: list[Any],
         agent_answer_data: AgentAnswerData,
         available_functions: dict[callable],
     ):
-        function_name = tool_call.function.name
-        function_to_call = available_functions[function_name]
-        function_args = json.loads(tool_call.function.arguments)
-        function_response = function_to_call(**function_args)
-        function_response += "\n\nIf the responses of the previously made tool calls are enough to answer the question, return the final answer. If the responses of the tool calls contain not enough information, then call one appropriate function."
-        agent_answer_data.add_function_response(function_response)
-        chat_messages.append(
-            {
-                "tool_call_id": tool_call.id,
-                "role": "tool",
-                "name": function_name,
-                "content": function_response,
-            }
-        )
-        second_response = self.openai_completion_call(
-            chat_messages=chat_messages, tools=TOOLS_LIST
-        )
-        second_response_message = second_response.choices[0].message
-        final_answer = second_response_message.content
-        tool_calls = deepcopy(second_response_message.tool_calls)
-        return final_answer, tool_calls, second_response_message
+        while len(tool_calls) > 0:
+            tool_call = tool_calls.pop(0)
+            function_name = tool_call.function.name
+            function_to_call = available_functions[function_name]
+            function_args = json.loads(tool_call.function.arguments)
+            function_response = function_to_call(**function_args)
+            function_response += "\n\nIf the responses of the previously made tool calls are enough to answer the question, return the final answer. If the responses of the tool calls contain not enough information, then call one appropriate function."
+            agent_answer_data.add_function_response(function_response)
+            chat_messages.append(
+                {
+                    "tool_call_id": tool_call.id,
+                    "role": "tool",
+                    "name": function_name,
+                    "content": function_response,
+                }
+            )
 
-    def _read_and_reset_meta_data(self):
+    def get_meta_data(self):
+        all_meta_data = []
         for function_name in self.available_functions:
             if hasattr(self.available_functions[function_name], "meta_data"):
                 meta_data = self.available_functions[function_name].meta_data
+                all_meta_data.append(
+                    {"function": function_name, "meta_data": meta_data}
+                )
+                self.available_functions[function_name].meta_data = []
+        return all_meta_data
 
     def run(self, chat_messages: list[dict[str, str]]) -> AgentAnswerData:
         agent_answer = self._execute_function_calling(

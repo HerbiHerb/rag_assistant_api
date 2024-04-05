@@ -33,7 +33,7 @@ class PineconeDocumentSearch(BaseModel, extra=Extra.allow):
             top_k=self.database_handler.pinecone_config.top_k,
         )
         result_text = "\n\n".join(result_texts)
-        self.meta_data = result_files
+        self.meta_data.extend(result_files)
         return result_text
 
 
