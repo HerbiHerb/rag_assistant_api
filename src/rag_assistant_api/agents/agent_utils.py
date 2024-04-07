@@ -64,15 +64,15 @@ def cleanup_function_call_messages(chat_messages: list[dict[str, str]]):
     for chat_message in chat_messages:
         if isinstance(chat_message, ChatCompletionMessage):
             role = chat_message.role
-            function_name = chat_message.tool_calls[0].function.name
-            arguments = chat_message.tool_calls[0].function.arguments
-            converted_chat_messages.append(
-                {
-                    "role": role,
-                    # "name": function_name,
-                    "content": f"$FUNCTION_CALL\n\nPreviously made function call\n\nFunction name: {function_name}\narguments: {arguments}",
-                }
-            )
+            for tool_call in chat_message.tool_calls:
+                function_name = tool_call.function.name
+                arguments = tool_call.function.arguments
+                converted_chat_messages.append(
+                    {
+                        "role": role,
+                        "content": f"$FUNCTION_CALL\n\nPreviously made function call\n\nFunction name: {function_name}\narguments: {arguments}",
+                    }
+                )
         elif chat_message["role"] == "tool":
             continue
         else:

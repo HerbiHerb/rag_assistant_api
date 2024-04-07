@@ -115,23 +115,19 @@ def execute_rag():
         chat_messages = insert_initial_system_msg(
             initial_system_msg=INITIAL_SYSTEM_MSG, chat_messages=chat_messages
         )
-    rag_model = OpenAIFunctionsAgent.initialize_openai_functions_agent(
-        model_name="gpt-3.5-turbo-0125", embedding_model="text-embedding-ada-002"
-    )
+    rag_model = OpenAIFunctionsAgent.initialize_agent()
     chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
     chat_messages.append({"role": "user", "content": query})
     agent_answer = rag_model.run(chat_messages=chat_messages)
     meta_data = rag_model.get_meta_data()
     chat_messages = cleanup_function_call_messages(chat_messages=chat_messages)
-    context_meta = []
     assistant_message = {
         "role": "assistant",
         "content": agent_answer.final_answer,
-        "urls": [meta_entry["URL"] for meta_entry in context_meta],
     }
     chat_messages.append(assistant_message)
     Conversation.update_chat_messages(conv_id=conv_id, chat_messages=chat_messages)
-    return jsonify({"answer": agent_answer.final_answer, "meta": context_meta})
+    return jsonify({"answer": agent_answer.final_answer, "meta_data": meta_data})
 
 
 @app.route("/test_summarization", methods=["POST"])
@@ -259,7 +255,7 @@ def main():
         "r",
     ) as file:
         config = yaml.safe_load(file)
-    if config["language_model"]["service"] == "OpenAI":
+    if config["language_models"]["service"] == "OpenAI":
         openai.api_key = os.getenv("OPENAI_API_KEY")
         pinecone.init(
             api_key=os.getenv("PINECONE_API_KEY"),
