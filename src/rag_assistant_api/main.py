@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 from .init_flask_app import app
 from .local_database.database_models import Conversation, User, Document
 from .agents.agent_utils import (
-    insert_initial_system_msg,
     extract_openai_chat_messages,
     cleanup_function_call_messages,
 )
@@ -111,10 +110,6 @@ def execute_rag():
                 400,
             )
     chat_messages = Conversation.get_chat_messages(conv_id=conv_id)
-    if not chat_messages or len(chat_messages) == 0:
-        chat_messages = insert_initial_system_msg(
-            initial_system_msg=INITIAL_SYSTEM_MSG, chat_messages=chat_messages
-        )
     rag_model = OpenAIFunctionsAgent.initialize_agent()
     chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
     chat_messages.append({"role": "user", "content": query})
@@ -141,7 +136,6 @@ Wir entwickelten schon bald eine bestimmte Vorgehensweise, die wir viele Jahre l
 
 	Eine Person wurde von einem Nachbarn wie folgt beschrieben: » Steve ist sehr scheu und verschlossen, immer hilfsbereit, aber kaum an anderen oder an der Wirklichkeit interessiert. Als sanftmütiger und ordentlicher Mensch hat er ein Bedürfnis nach Ordnung und Struktur und eine Pas- sion für Details.« Ist Steve eher Bibliothekar oder eher Landwirt?"""
     response = summarize_text(text=text, model_name="gpt-3.5-turbo-0125")
-    test = 0
     return response
 
 

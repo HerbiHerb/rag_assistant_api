@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Callable
 from pydantic import BaseModel, Field
 from openai import OpenAI
 from openai._types import NOT_GIVEN
@@ -18,6 +17,20 @@ class AgentBase(ABC, BaseModel):
 class OpenAIAgent(AgentBase):
     openai_client: OpenAI
     model_name: str
+    initial_system_msg: str
+
+    def insert_initial_system_msg(
+        self, chat_messages: list[dict[str, str]]
+    ) -> list[dict[str, str]]:
+        """
+        Generates the initial chat messages for the openai llms.
+
+        Returns:
+            A list containing the initial chat message
+        """
+        chat_messages = [] if not chat_messages else chat_messages
+        chat_messages.append({"role": "system", "content": self.initial_system_msg})
+        return chat_messages
 
     def openai_completion_call(
         self,

@@ -4,7 +4,6 @@ from typing import List
 
 class AgentData(BaseModel):
     openai_key: str
-    # model_name: str
     max_token_number: int
     embedding_model_name: str
     embedding_token_counter: str

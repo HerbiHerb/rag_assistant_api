@@ -104,6 +104,7 @@ class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     document_type = db.Column(db.Text, nullable=False)
     document_text = db.Column(db.Text, nullable=False)
+    chapter_with_summaries = db.Column(db.Text)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     def save_document(user_id: int, document_type: str, document_text: str):

@@ -30,6 +30,8 @@ class OpenAIFunctionsAgent(OpenAIAgent):
     def initialize_agent(cls):
         with open(os.getenv("CONFIG_FP"), "r") as file:
             config_data = yaml.safe_load(file)
+        with open(os.getenv("PROMPT_CONFIGS_FP"), "r") as file:
+            prompt_configs = yaml.safe_load(file)
         data_processing_config = DataProcessingConfig(**config_data["data_processing"])
         pinecone_config = PineconeConfig(**config_data["pinecone_db"])
         database_handler = PineconeDatabaseHandler(
@@ -51,6 +53,7 @@ class OpenAIFunctionsAgent(OpenAIAgent):
             model_name=config_data["language_models"]["model_name"],
             available_functions=available_functions,
             function_definitions=function_definitions,
+            initial_system_msg=prompt_configs["rag_assistant"]["system_msg"],
         )
 
     def _execute_function_calling(
@@ -130,6 +133,8 @@ class OpenAIFunctionsAgent(OpenAIAgent):
         return all_meta_data
 
     def run(self, chat_messages: list[dict[str, str]]) -> AgentAnswerData:
+        if not chat_messages or len(chat_messages) == 0:
+            chat_messages = self.insert_initial_system_msg(chat_messages=chat_messages)
         agent_answer = self._execute_function_calling(
             chat_messages=chat_messages,
             max_token_number=get_max_token_number(model_name=self.model_name),

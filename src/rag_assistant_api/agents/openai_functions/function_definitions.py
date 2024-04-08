@@ -2,9 +2,9 @@ import os
 from openai import AzureOpenAI
 from pydantic import BaseModel, Extra, Field
 from typing import Tuple, List
+from openai import OpenAI
 from langchain_openai import OpenAIEmbeddings
 from ...vector_database.data_processing_utils import get_embedding
-from ...base_classes.database_handler import DatabaseHandler
 from ...vector_database.pinecone.pinecone_database_handler import (
     PineconeDatabaseHandler,
 )
@@ -55,4 +55,16 @@ DOCUMENT_SEARCH = {
     },
 }
 
-TOOLS_LIST = [DOCUMENT_SEARCH]
+
+class SummarizationTool(BaseModel, extra=Extra.allow, arbitrary_types_allowed=True):
+    name = "document_search"
+    description = "Useful if you need facts to answer a user question."
+    embedding_model: OpenAIEmbeddings
+    openai_client: OpenAI
+
+    # class Config:
+    #     arbitrary_types_allowed = True
+
+    def __call__(self, chapter: str, document_id: str) -> str:
+        result_text = ""
+        return result_text
