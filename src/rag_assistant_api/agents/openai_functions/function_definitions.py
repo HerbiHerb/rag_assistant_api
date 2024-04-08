@@ -62,9 +62,6 @@ class SummarizationTool(BaseModel, extra=Extra.allow, arbitrary_types_allowed=Tr
     embedding_model: OpenAIEmbeddings
     openai_client: OpenAI
 
-    # class Config:
-    #     arbitrary_types_allowed = True
-
     def __call__(self, chapter: str, document_id: str) -> str:
         result_text = ""
         return result_text

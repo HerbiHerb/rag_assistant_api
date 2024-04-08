@@ -132,9 +132,10 @@ class OpenAIFunctionsAgent(OpenAIAgent):
                 self.available_functions[function_name].meta_data = []
         return all_meta_data
 
-    def run(self, chat_messages: list[dict[str, str]]) -> AgentAnswerData:
+    def run(self, query: str, chat_messages: list[dict[str, str]]) -> AgentAnswerData:
         if not chat_messages or len(chat_messages) == 0:
             chat_messages = self.insert_initial_system_msg(chat_messages=chat_messages)
+        chat_messages.append({"role": "user", "content": query})
         agent_answer = self._execute_function_calling(
             chat_messages=chat_messages,
             max_token_number=get_max_token_number(model_name=self.model_name),

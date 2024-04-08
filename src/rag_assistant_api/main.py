@@ -112,8 +112,7 @@ def execute_rag():
     chat_messages = Conversation.get_chat_messages(conv_id=conv_id)
     rag_model = OpenAIFunctionsAgent.initialize_agent()
     chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
-    chat_messages.append({"role": "user", "content": query})
-    agent_answer = rag_model.run(chat_messages=chat_messages)
+    agent_answer = rag_model.run(query=query, chat_messages=chat_messages)
     meta_data = rag_model.get_meta_data()
     chat_messages = cleanup_function_call_messages(chat_messages=chat_messages)
     assistant_message = {
