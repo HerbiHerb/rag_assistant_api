@@ -44,28 +44,21 @@ class PineconeConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
     )
 
 
-class ChromadbConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
-    collection_name: str = Field(
-        default="llm_demo_documents",
-        description="ChromaDB collection name in which the vectors are stored",
+class DocumentProcessingConfig(BaseModel, extra=Extra.forbid):
+    meta_data_pattern: str = Field(
+        description="Regex pattern to extract meta data from a document"
     )
-    data_folder_fp: str = Field(
-        default=None, description="Path to where txt files are stored."
+    part_seperator: str = Field(
+        description="String to seperate diferent parts of a document"
     )
-    config_credentials: Optional[pathlib.Path] = Field(
-        default=None, description="Path to where configs are stored."
+    chapter_seperator: str = Field(
+        description="String to seperate diferent chapters of a document"
     )
-    persist_directory: str = Field(
-        default=None, description="Path to where the chromadb is persisted."
+    subchapter_seperator: str = Field(
+        description="String to seperate diferent subchapters of a document"
     )
-    embedding_model: Literal["text-embedding-ada-002"] = Field(
-        default="text-embedding-ada-002",
-        description="Embedding model from AzureOpenAI. It is storongly advised to use ada-002. "
-        + "Make sure you use the Model Implementation Name from AzureOpenAI.",
-    )
-    max_token_size: StrictInt = Field(default=256, description="Chunk size of tokens.")
-    tokenizer_model: Literal["text-davinci-003"] = Field(
-        default="text-davinci-003", description="Tokenizer model for text tokenization "
+    meta_data_fields: list[str] = Field(
+        description="List which defines the different fields of the meta data in a document"
     )
 
 

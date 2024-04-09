@@ -12,7 +12,11 @@ from .agents.agent_utils import (
     cleanup_function_call_messages,
 )
 from .agents.openai_functions_agent.openai_functions_agent import OpenAIFunctionsAgent
-from .data_structures.data_structures import PineconeConfig, DataProcessingConfig
+from .data_structures.data_structures import (
+    PineconeConfig,
+    DataProcessingConfig,
+    DocumentProcessingConfig,
+)
 from .vector_database.pinecone.pinecone_database_handler import PineconeDatabaseHandler
 from .vector_database.pinecone.generate_pinecone_db import (
     generate_database,
@@ -213,6 +217,7 @@ def upload_document():
     with open(os.getenv("CONFIG_FP"), "r") as file:
         config_data = yaml.safe_load(file)
     uploaded_text = request.data.decode("utf-8")
+    document_config = DocumentProcessingConfig(**config_data["document_processing"])
     meta_data = extract_meta_data(
         extraction_pattern=config_data["document_processing"]["meta_data_pattern"],
         document_text=uploaded_text,
