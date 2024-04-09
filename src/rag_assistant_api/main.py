@@ -12,7 +12,7 @@ from .agents.agent_utils import (
     cleanup_function_call_messages,
 )
 from .agents.openai_functions_agent.openai_functions_agent import OpenAIFunctionsAgent
-from .vector_database.config_schemas import PineconeConfig, DataProcessingConfig
+from .data_structures.data_structures import PineconeConfig, DataProcessingConfig
 from .vector_database.pinecone.pinecone_database_handler import PineconeDatabaseHandler
 from .vector_database.pinecone.generate_pinecone_db import (
     generate_database,

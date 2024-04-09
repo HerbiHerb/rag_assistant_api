@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from pydantic import BaseModel, ConfigDict
 from typing import Any, Iterable, List, Tuple
-from ..vector_database.config_schemas import DataProcessingConfig
+from ..data_structures.data_structures import DataProcessingConfig
 
 
 class DatabaseHandler(BaseModel):

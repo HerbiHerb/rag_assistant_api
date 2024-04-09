@@ -6,8 +6,12 @@ from pydantic.types import StrictInt
 
 
 class DataProcessingConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
-    data_folder_fp: str = Field(default=None, description="Path to where txt files are stored.")
-    batch_size: StrictInt = Field(default=100, description="Batch size of vectors to be upsert together.")
+    data_folder_fp: str = Field(
+        default=None, description="Path to where txt files are stored."
+    )
+    batch_size: StrictInt = Field(
+        default=100, description="Batch size of vectors to be upsert together."
+    )
     chunk_size: StrictInt = Field(default=256, description="Chunk size of tokens.")
     overlap: StrictInt = Field(default=20, description="Chunk overlap.")
     embedding_model: Literal["text-embedding-ada-002"] = Field(
@@ -18,8 +22,12 @@ class DataProcessingConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
     embeddings_file_path: Optional[pathlib.Path] = Field(
         default=None, description="Path to where embeddings are saved in a csv file."
     )
-    config_credentials: Optional[pathlib.Path] = Field(default=None, description="Path to where configs are stored.")
-    meta_prefix: Optional[str] = Field(default='', description="Prefix under witch Meta Files are found.")
+    config_credentials: Optional[pathlib.Path] = Field(
+        default=None, description="Path to where configs are stored."
+    )
+    meta_prefix: Optional[str] = Field(
+        default="", description="Prefix under witch Meta Files are found."
+    )
 
 
 class PineconeConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
@@ -28,8 +36,12 @@ class PineconeConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
     metric: Literal["cosine", "dotproduct", "euclidean"] = Field(
         default="cosine", description="Metric to be used to find similar vectors."
     )
-    top_k: StrictInt = Field(default=5, description="Number of results for the semantic search.")
-    config_credentials: Optional[pathlib.Path] = Field(default=None, description="Path to where configs are stored.")
+    top_k: StrictInt = Field(
+        default=5, description="Number of results for the semantic search."
+    )
+    config_credentials: Optional[pathlib.Path] = Field(
+        default=None, description="Path to where configs are stored."
+    )
 
 
 class ChromadbConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
@@ -37,9 +49,15 @@ class ChromadbConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
         default="llm_demo_documents",
         description="ChromaDB collection name in which the vectors are stored",
     )
-    data_folder_fp: str = Field(default=None, description="Path to where txt files are stored.")
-    config_credentials: Optional[pathlib.Path] = Field(default=None, description="Path to where configs are stored.")
-    persist_directory: str = Field(default=None, description="Path to where the chromadb is persisted.")
+    data_folder_fp: str = Field(
+        default=None, description="Path to where txt files are stored."
+    )
+    config_credentials: Optional[pathlib.Path] = Field(
+        default=None, description="Path to where configs are stored."
+    )
+    persist_directory: str = Field(
+        default=None, description="Path to where the chromadb is persisted."
+    )
     embedding_model: Literal["text-embedding-ada-002"] = Field(
         default="text-embedding-ada-002",
         description="Embedding model from AzureOpenAI. It is storongly advised to use ada-002. "
@@ -49,3 +67,24 @@ class ChromadbConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
     tokenizer_model: Literal["text-davinci-003"] = Field(
         default="text-davinci-003", description="Tokenizer model for text tokenization "
     )
+
+
+class AgentData(BaseModel):
+    openai_key: str
+    max_token_number: int
+    embedding_model_name: str
+    embedding_token_counter: str
+    pinecone_key: str
+    pinecone_environment: str
+    pinecone_index_name: str
+    chatmessages_csv_path: str
+    listening_sound_path: str
+
+
+class AgentAnswerData(BaseModel):
+    query_msg_idx: int
+    final_answer: str = Field(default="")
+    function_responses: list[str] = Field(default=[])
+
+    def add_function_response(self, new_response: str) -> None:
+        self.function_responses.append(new_response)

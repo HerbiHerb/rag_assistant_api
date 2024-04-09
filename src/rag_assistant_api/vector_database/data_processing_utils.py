@@ -66,6 +66,10 @@ def extract_meta_data(extraction_pattern: str, document_text: str):
     return meta_data_dict
 
 
+def split_text_on_chapters():
+    pass
+
+
 def remove_meta_data_from_text(text: str):
     splitted_text = text.split("$END_META_DATA")
     if splitted_text:

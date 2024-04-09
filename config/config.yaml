@@ -6,7 +6,9 @@ language_models:
   temp": 0.0
 document_processing:
   meta_data_pattern: '(?s)\$META_DATA(.*)\$END_META_DATA'
-  chapter_kw: "$CHAPTER$"
+  part_seperator: "$PART$"
+  chapter_seperator: "$CHAPTER$"
+  subchapter_seperator: "$SUBCHAPTER$"
   meta_data_fields: ["document_name", "autor", "date", "genre", "field", "type", "user_id"]
 data_processing:
   data_folder_fp: "src/data/raw_data/rag_assistant_txt_files/"

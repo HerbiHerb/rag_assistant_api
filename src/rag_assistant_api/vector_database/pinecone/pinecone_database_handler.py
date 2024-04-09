@@ -1,5 +1,5 @@
 from typing import Any, Iterable
-from ..config_schemas import PineconeConfig, DataProcessingConfig
+from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
 import pinecone
 from ...base_classes.database_handler import DatabaseHandler
 import pinecone

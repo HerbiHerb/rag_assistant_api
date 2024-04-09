@@ -7,7 +7,7 @@ import yaml
 from copy import deepcopy
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import TokenTextSplitter
-from ..config_schemas import PineconeConfig, DataProcessingConfig
+from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
 from ..data_processing_utils import (
     split_txt_file,
     get_embedding,

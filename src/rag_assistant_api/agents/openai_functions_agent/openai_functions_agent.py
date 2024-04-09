@@ -13,11 +13,11 @@ from ..openai_functions.function_definitions import (
     DOCUMENT_SEARCH,
 )
 from ...base_classes.agent_base import OpenAIAgent
-from ...vector_database.config_schemas import PineconeConfig, DataProcessingConfig
+from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
 from ...vector_database.pinecone.pinecone_database_handler import (
     PineconeDatabaseHandler,
 )
-from ..data_structure import AgentAnswerData
+from ...data_structures.data_structures import AgentAnswerData
 from ..exceptions import TokenLengthExceedsMaxTokenNumber
 from ..agent_utils import count_tokens_of_conversation, get_max_token_number
 
