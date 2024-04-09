@@ -10,6 +10,10 @@ class AgentBase(ABC, BaseModel):
         arbitrary_types_allowed = True
 
     @abstractmethod
+    def get_meta_data() -> list[dict[str, str]]:
+        pass
+
+    @abstractmethod
     def run(query: str) -> str:
         pass
 

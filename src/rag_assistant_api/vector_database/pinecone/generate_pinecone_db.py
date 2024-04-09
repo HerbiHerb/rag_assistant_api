@@ -18,17 +18,10 @@ from ..data_processing_utils import (
 from ...base_classes.database_handler import DatabaseHandler
 
 
-# def remove_meta_data_from_text(text: str):
-#     splitted_text = text.split("$END_META_DATA")
-#     if splitted_text:
-#         return splitted_text[1]
-
-
 def process_file(
     file_path: str,
-    meta_file_path: str,
     text_splitter,
-    embedding_model: str,
+    embedding_model: OpenAIEmbeddings,
     database_handler: DatabaseHandler,
 ):
     """
@@ -75,7 +68,7 @@ def empty_database(database_handler: DatabaseHandler) -> None:
 def upload_chunks_in_batches(
     text_chunks_with_chapters: list[str],
     meta_data: dict,
-    embedding_model: str,
+    embedding_model: OpenAIEmbeddings,
     database_handler: DatabaseHandler,
 ):
     """
@@ -125,10 +118,10 @@ def generate_database(database_handler: DatabaseHandler):
     """
     with open(os.environ["CONFIG_FP"], "r") as file:
         config_data = yaml.safe_load(file)
-    meta_prefix = config_data["data_processing"]["meta_prefix"]
-    # set_api_credentials()
     empty_database(database_handler=database_handler)
-    embedding_model = OpenAIEmbeddings(model="text-embedding-ada-002")
+    embedding_model = OpenAIEmbeddings(
+        model=config_data["language_models"]["embedding_model"]
+    )
     text_splitter = TokenTextSplitter(
         chunk_size=database_handler.data_processing_config.chunk_size,
         chunk_overlap=database_handler.data_processing_config.overlap,
@@ -142,10 +135,8 @@ def generate_database(database_handler: DatabaseHandler):
                 file, ignore_prefix="meta"
             ):
                 file_path = os.path.join(subdir, file)
-                meta_file_path = os.path.join(subdir, meta_prefix + file)
                 process_file(
                     file_path,
-                    meta_file_path,
                     text_splitter,
                     embedding_model,
                     database_handler=database_handler,
@@ -153,7 +144,11 @@ def generate_database(database_handler: DatabaseHandler):
 
 
 def update_database(text: str, text_meta_data: dict, database_handler: DatabaseHandler):
-    embedding_model = OpenAIEmbeddings(model="text-embedding-ada-002")
+    with open(os.environ["CONFIG_FP"], "r") as file:
+        config_data = yaml.safe_load(file)
+    embedding_model = OpenAIEmbeddings(
+        model=config_data["language_models"]["embedding_model"]
+    )
     text_splitter = TokenTextSplitter(
         chunk_size=database_handler.data_processing_config.chunk_size,
         chunk_overlap=database_handler.data_processing_config.overlap,

@@ -115,11 +115,12 @@ def execute_rag():
     agent_answer = rag_model.run(query=query, chat_messages=chat_messages)
     meta_data = rag_model.get_meta_data()
     chat_messages = cleanup_function_call_messages(chat_messages=chat_messages)
-    assistant_message = {
-        "role": "assistant",
-        "content": agent_answer.final_answer,
-    }
-    chat_messages.append(assistant_message)
+    chat_messages.append(
+        {
+            "role": "assistant",
+            "content": agent_answer.final_answer,
+        }
+    )
     Conversation.update_chat_messages(conv_id=conv_id, chat_messages=chat_messages)
     return jsonify({"answer": agent_answer.final_answer, "meta_data": meta_data})
 
@@ -134,7 +135,7 @@ Wir entwickelten schon bald eine bestimmte Vorgehensweise, die wir viele Jahre l
 	Wenn Sie über die nächste Frage nachdenken, sollten Sie davon ausgehen, dass Steve zufällig aus einer repräsentativen Stichprobe ausgewählt wurde:
 
 	Eine Person wurde von einem Nachbarn wie folgt beschrieben: » Steve ist sehr scheu und verschlossen, immer hilfsbereit, aber kaum an anderen oder an der Wirklichkeit interessiert. Als sanftmütiger und ordentlicher Mensch hat er ein Bedürfnis nach Ordnung und Struktur und eine Pas- sion für Details.« Ist Steve eher Bibliothekar oder eher Landwirt?"""
-    response = summarize_text(text=text, model_name="gpt-3.5-turbo-0125")
+    response = summarize_text(text=text)
     return response
 
 
@@ -211,14 +212,14 @@ def generate_vector_db():
 
 @app.route("/upload_document", methods=["POST"])
 def upload_document():
+    with open(os.getenv("CONFIG_FP"), "r") as file:
+        config_data = yaml.safe_load(file)
     uploaded_text = request.data.decode("utf-8")
     meta_data = extract_meta_data(
-        extraction_pattern=r"(?s)\$META_DATA(.*)\$END_META_DATA",
+        extraction_pattern=config_data["document_processing"]["meta_data_pattern"],
         document_text=uploaded_text,
     )
     uploaded_text = remove_meta_data_from_text(text=uploaded_text)
-    with open(os.getenv("CONFIG_FP"), "r") as file:
-        config_data = yaml.safe_load(file)
     data_processing_config = DataProcessingConfig(**config_data["data_processing"])
     pinecone_config = PineconeConfig(**config_data["pinecone_db"])
     database_handler = PineconeDatabaseHandler(
