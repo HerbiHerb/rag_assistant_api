@@ -11,8 +11,6 @@ from .agents.agent_utils import (
     extract_openai_chat_messages,
     cleanup_function_call_messages,
 )
-
-from .agents.prompts import INITIAL_SYSTEM_MSG
 from .agents.openai_functions_agent.openai_functions_agent import OpenAIFunctionsAgent
 from .vector_database.config_schemas import PineconeConfig, DataProcessingConfig
 from .vector_database.pinecone.pinecone_database_handler import PineconeDatabaseHandler

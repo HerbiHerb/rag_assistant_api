@@ -69,10 +69,10 @@ class SummarizationTool(BaseModel, extra=Extra.allow, arbitrary_types_allowed=Tr
 
 class GetUserInformation(BaseModel, extra=Extra.allow, arbitrary_types_allowed=True):
     name = "get_user_information"
-    description = "Useful if you need information about the user ."
+    description = "Useful if you need information about the user."
     embedding_model: OpenAIEmbeddings
     openai_client: OpenAI
 
-    def __call__(self, chapter: str, document_id: str) -> str:
+    def __call__(self, user_id: str) -> str:
         result_text = ""
         return result_text
