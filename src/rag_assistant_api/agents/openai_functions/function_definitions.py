@@ -1,7 +1,4 @@
-import os
-from openai import AzureOpenAI
 from pydantic import BaseModel, Extra, Field
-from typing import Tuple, List
 from openai import OpenAI
 from langchain_openai import OpenAIEmbeddings
 from ...utils.data_processing_utils import get_embedding
