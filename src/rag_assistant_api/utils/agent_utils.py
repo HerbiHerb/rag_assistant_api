@@ -1,7 +1,7 @@
 from typing import List, Dict
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 import tiktoken
-from .exceptions import ModelNotIncluded
+from ..agents.exceptions import ModelNotIncluded
 
 
 def get_max_token_number(model_name: str) -> int:

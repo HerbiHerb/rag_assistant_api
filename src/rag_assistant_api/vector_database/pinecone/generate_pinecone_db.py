@@ -8,7 +8,7 @@ from copy import deepcopy
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import TokenTextSplitter
 from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
-from ..data_processing_utils import (
+from ...utils.data_processing_utils import (
     split_txt_file,
     get_embedding,
     check_for_ignore_prefix,

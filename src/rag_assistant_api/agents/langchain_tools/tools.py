@@ -1,7 +1,7 @@
 from langchain.tools import BaseTool
 from typing import Tuple, List
 from langchain_openai import OpenAIEmbeddings
-from ...vector_database.data_processing_utils import get_embedding
+from ...utils.data_processing_utils import get_embedding
 from ...base_classes.database_handler import DatabaseHandler
 
 

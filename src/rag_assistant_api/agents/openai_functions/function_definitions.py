@@ -4,7 +4,7 @@ from pydantic import BaseModel, Extra, Field
 from typing import Tuple, List
 from openai import OpenAI
 from langchain_openai import OpenAIEmbeddings
-from ...vector_database.data_processing_utils import get_embedding
+from ...utils.data_processing_utils import get_embedding
 from ...vector_database.pinecone.pinecone_database_handler import (
     PineconeDatabaseHandler,
 )

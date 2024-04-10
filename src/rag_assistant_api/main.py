@@ -7,7 +7,7 @@ import pinecone
 from dotenv import load_dotenv
 from .init_flask_app import app
 from .local_database.database_models import Conversation, User, Document
-from .agents.agent_utils import (
+from .utils.agent_utils import (
     extract_openai_chat_messages,
     cleanup_function_call_messages,
 )
@@ -22,7 +22,7 @@ from .vector_database.pinecone.generate_pinecone_db import (
     generate_database,
     update_database,
 )
-from .vector_database.data_processing_utils import (
+from .utils.data_processing_utils import (
     extract_meta_data,
     remove_meta_data_from_text,
 )

@@ -19,7 +19,7 @@ from ...vector_database.pinecone.pinecone_database_handler import (
 )
 from ...data_structures.data_structures import AgentAnswerData
 from ..exceptions import TokenLengthExceedsMaxTokenNumber
-from ..agent_utils import count_tokens_of_conversation, get_max_token_number
+from ...utils.agent_utils import count_tokens_of_conversation, get_max_token_number
 
 
 class OpenAIFunctionsAgent(OpenAIAgent):
