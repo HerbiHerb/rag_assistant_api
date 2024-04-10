@@ -7,9 +7,15 @@ import yaml
 from copy import deepcopy
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import TokenTextSplitter
-from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
+from ...data_structures.data_structures import (
+    PineconeConfig,
+    DataProcessingConfig,
+    DocumentProcessingConfig,
+)
 from ...utils.data_processing_utils import (
-    split_txt_file,
+    split_text_into_parts_and_chapters,
+    split_texts_by_keywords,
+    split_texts_into_chunks,
     get_embedding,
     check_for_ignore_prefix,
     extract_meta_data,
@@ -23,6 +29,7 @@ def process_file(
     text_splitter,
     embedding_model: OpenAIEmbeddings,
     database_handler: DatabaseHandler,
+    document_config: DocumentProcessingConfig,
 ):
     """
     Processes a single text file by dividing it into text sections,
@@ -38,13 +45,17 @@ def process_file(
     with open(file_path, "r", encoding="utf-8") as text_file:
         text = text_file.read()
         meta_data = extract_meta_data(
-            extraction_pattern=r"(?s)\$META_DATA(.*)\$END_META_DATA", document_text=text
+            extraction_pattern=document_config.meta_data_pattern, document_text=text
         )
         text = remove_meta_data_from_text(text=text)
-        text_chunks_with_chapter = split_txt_file(text, text_splitter=text_splitter)
-
+        text_chunks_with_chapter = split_text_into_parts_and_chapters(
+            text, document_processing_config=document_config
+        )
+        text_chunks = split_texts_into_chunks(
+            text_dicts=text_chunks_with_chapter, text_splitter=text_splitter
+        )
         upload_chunks_in_batches(
-            text_chunks_with_chapter,
+            text_chunks,
             meta_data,
             embedding_model,
             database_handler,
@@ -126,7 +137,7 @@ def generate_database(database_handler: DatabaseHandler):
         chunk_size=database_handler.data_processing_config.chunk_size,
         chunk_overlap=database_handler.data_processing_config.overlap,
     )
-
+    document_config = DocumentProcessingConfig(**config_data["document_processing"])
     for subdir, dirs, files in os.walk(
         database_handler.data_processing_config.data_folder_fp
     ):
@@ -140,10 +151,16 @@ def generate_database(database_handler: DatabaseHandler):
                     text_splitter,
                     embedding_model,
                     database_handler=database_handler,
+                    document_config=document_config,
                 )
 
 
-def update_database(text: str, text_meta_data: dict, database_handler: DatabaseHandler):
+def update_database(
+    text: str,
+    text_meta_data: dict,
+    database_handler: DatabaseHandler,
+    document_processing_config: DocumentProcessingConfig,
+):
     with open(os.environ["CONFIG_FP"], "r") as file:
         config_data = yaml.safe_load(file)
     embedding_model = OpenAIEmbeddings(
@@ -153,9 +170,14 @@ def update_database(text: str, text_meta_data: dict, database_handler: DatabaseH
         chunk_size=database_handler.data_processing_config.chunk_size,
         chunk_overlap=database_handler.data_processing_config.overlap,
     )
-    text_chunks_with_chapter = split_txt_file(text, text_splitter=text_splitter)
+    text_chunks_with_chapter = split_text_into_parts_and_chapters(
+        text=text, document_processing_config=document_processing_config
+    )
+    text_chunks = split_texts_into_chunks(
+        text_dicts=text_chunks_with_chapter, text_splitter=text_splitter
+    )
     upload_chunks_in_batches(
-        text_chunks_with_chapter,
+        text_chunks,
         text_meta_data,
         embedding_model,
         database_handler,

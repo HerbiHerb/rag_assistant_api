@@ -5,6 +5,7 @@ import openai
 from flask import jsonify, request
 import pinecone
 from dotenv import load_dotenv
+from langchain.text_splitter import TokenTextSplitter
 from .init_flask_app import app
 from .local_database.database_models import Conversation, User, Document
 from .utils.agent_utils import (
@@ -25,6 +26,7 @@ from .vector_database.pinecone.generate_pinecone_db import (
 from .utils.data_processing_utils import (
     extract_meta_data,
     remove_meta_data_from_text,
+    split_text_into_parts_and_chapters,
 )
 from .llm_tasks.summarization import summarize_text
 
@@ -216,22 +218,25 @@ def generate_vector_db():
 def upload_document():
     with open(os.getenv("CONFIG_FP"), "r") as file:
         config_data = yaml.safe_load(file)
-    uploaded_text = request.data.decode("utf-8")
-    document_config = DocumentProcessingConfig(**config_data["document_processing"])
-    meta_data = extract_meta_data(
-        extraction_pattern=config_data["document_processing"]["meta_data_pattern"],
-        document_text=uploaded_text,
-    )
-    uploaded_text = remove_meta_data_from_text(text=uploaded_text)
     data_processing_config = DataProcessingConfig(**config_data["data_processing"])
     pinecone_config = PineconeConfig(**config_data["pinecone_db"])
     database_handler = PineconeDatabaseHandler(
         index=pinecone.Index(pinecone_config.index_name),
         data_processing_config=data_processing_config,
-        pinecone_config=PineconeConfig(**config_data["pinecone_db"]),
+        pinecone_config=pinecone_config,
     )
+    uploaded_text = request.data.decode("utf-8")
+    document_config = DocumentProcessingConfig(**config_data["document_processing"])
+    meta_data = extract_meta_data(
+        extraction_pattern=document_config.meta_data_pattern,
+        document_text=uploaded_text,
+    )
+    uploaded_text = remove_meta_data_from_text(text=uploaded_text)
     update_database(
-        text=uploaded_text, text_meta_data=meta_data, database_handler=database_handler
+        text=uploaded_text,
+        text_meta_data=meta_data,
+        database_handler=database_handler,
+        document_processing_config=document_config,
     )
     document_id = Document.save_document(
         user_id=meta_data["user_id"],

@@ -56,6 +56,19 @@ DOCUMENT_SEARCH = {
 }
 
 
+class VectorFilterSearchTool(
+    BaseModel, extra=Extra.allow, arbitrary_types_allowed=True
+):
+    name = "vector_filter_search"
+    description = "Useful if you need facts to answer a user question."
+    embedding_model: OpenAIEmbeddings
+    openai_client: OpenAI
+
+    def __call__(self, search_str: str, filter_field: str, filter_value: str) -> str:
+        result_text = ""
+        return result_text
+
+
 class SummarizationTool(BaseModel, extra=Extra.allow, arbitrary_types_allowed=True):
     name = "text_summarization"
     description = "Useful if you need facts to answer a user question."
