@@ -9,6 +9,7 @@ def get_max_token_number(model_name: str) -> int:
         "gpt-3.5-turbo-0125": 16000,
         "gpt-3.5-turbo-1106": 16000,
         "gpt-4-1106-preview": 128000,
+        "gpt-4-turbo": 128000,
     }
     if model_name not in token_num_lookup:
         raise ModelNotIncluded

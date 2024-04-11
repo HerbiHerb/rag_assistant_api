@@ -9,7 +9,7 @@ from ...vector_database.pinecone.pinecone_database_handler import (
 
 class PineconeDocumentSearch(BaseModel, extra=Extra.allow):
     name = "document_search"
-    description = "Useful for when you need facts to answer a user question."
+    description = "Useful if you need facts from documents to answer a user question. All documents are considered to search for information."
     embedding_model: OpenAIEmbeddings
     database_handler: PineconeDatabaseHandler
     filter: dict = Field(
@@ -37,8 +37,9 @@ class PineconeDocumentSearch(BaseModel, extra=Extra.allow):
 DOCUMENT_SEARCH = {
     "type": "function",
     "function": {
-        "name": "fetch_relevant_information",
-        "description": "This function searches for relevant information from a vector database. The purpose of this function is to provide grounded information to an AI system to answer the user questions.",
+        "name": "document_search",
+        "description": """This function searches for relevant information from a vector database.
+        The purpose of this function is to provide grounded information to an AI system to answer the user questions. """,
         "parameters": {
             "type": "object",
             "properties": {
@@ -48,6 +49,57 @@ DOCUMENT_SEARCH = {
                 },
             },
             "required": ["search_string"],
+        },
+    },
+}
+
+
+class PineconeDocumentFilterSearch(BaseModel, extra=Extra.allow):
+    name = "document_filter_search"
+    description = "Useful if you need facts from a specific document to answer a user question. Information only from this document are considered."
+    embedding_model: OpenAIEmbeddings
+    database_handler: PineconeDatabaseHandler
+    filter: dict = Field(
+        default=None, description="Filter dictionary for the vector search"
+    )
+    meta_data: list[dict[str, str]] = Field(
+        default=[], description="Field to save meta data of the document search"
+    )
+
+    def __call__(self, search_string: str, document_name: str = None) -> str:
+        """Use the tool"""
+        query_embeddings = get_embedding(
+            search_string, embedding_model=self.embedding_model
+        )
+        result_texts, result_files = self.database_handler.query(
+            embedding=query_embeddings,
+            filter=self.filter,
+            top_k=self.database_handler.pinecone_config.top_k,
+        )
+        result_text = "\n\n".join(result_texts)
+        self.meta_data.extend(result_files)
+        return result_text
+
+
+DOCUMENT_FILTER_SEARCH = {
+    "type": "function",
+    "function": {
+        "name": "document_filter_search",
+        "description": """This function searches for relevant information from a vector database. 
+        The purpose of this function is to provide grounded information to an AI system to answer the user questions. """,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "search_string": {
+                    "type": "string",
+                    "description": "Search string to execute a semantic search on a vector database.",
+                },
+                "document_name": {
+                    "type": "string",
+                    "description": "(Optional) Useful if the user mentioned the name of the document in the query. If the name is not mentoined, ignore this parameter.",
+                },
+            },
+            "required": ["search_string", "document_name"],
         },
     },
 }

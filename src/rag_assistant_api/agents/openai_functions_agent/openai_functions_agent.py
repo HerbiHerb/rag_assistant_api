@@ -10,7 +10,9 @@ import tiktoken
 from langchain_openai import AzureOpenAIEmbeddings, OpenAIEmbeddings
 from ..openai_functions.function_definitions import (
     PineconeDocumentSearch,
+    PineconeDocumentFilterSearch,
     DOCUMENT_SEARCH,
+    DOCUMENT_FILTER_SEARCH,
 )
 from ...base_classes.agent_base import OpenAIAgent
 from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
@@ -40,14 +42,20 @@ class OpenAIFunctionsAgent(OpenAIAgent):
             pinecone_config=PineconeConfig(**config_data["pinecone_db"]),
         )
         available_functions = {
-            "fetch_relevant_information": PineconeDocumentSearch(
+            "document_search": PineconeDocumentSearch(
+                embedding_model=OpenAIEmbeddings(
+                    model=config_data["language_models"]["embedding_model"]
+                ),
+                database_handler=database_handler,
+            ),
+            "document_filter_search": PineconeDocumentFilterSearch(
                 embedding_model=OpenAIEmbeddings(
                     model=config_data["language_models"]["embedding_model"]
                 ),
                 database_handler=database_handler,
             ),
         }
-        function_definitions = [DOCUMENT_SEARCH]
+        function_definitions = [DOCUMENT_SEARCH, DOCUMENT_FILTER_SEARCH]
         return OpenAIFunctionsAgent(
             openai_client=OpenAI(),
             model_name=config_data["language_models"]["model_name"],
