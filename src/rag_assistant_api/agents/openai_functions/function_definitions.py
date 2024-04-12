@@ -85,8 +85,33 @@ DOCUMENT_FILTER_SEARCH = {
     "type": "function",
     "function": {
         "name": "document_filter_search",
-        "description": """This function searches for relevant information from a vector database. 
-        The purpose of this function is to provide grounded information to an AI system to answer the user questions. """,
+        "description": """This function searches for relevant chunks of a document from a vector database. 
+        Use this function if the user mentioned the document and you think you need only small relevant text snippets from 
+        the document to answer the user query. """,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "search_string": {
+                    "type": "string",
+                    "description": "Search string to execute a semantic search on a vector database.",
+                },
+                "document_name": {
+                    "type": "string",
+                    "description": "(Optional) Useful if the user mentioned the name of the document in the query. If the name is not mentoined, ignore this parameter.",
+                },
+            },
+            "required": ["search_string", "document_name"],
+        },
+    },
+}
+
+
+DOCUMENT_ANALYZER = {
+    "type": "function",
+    "function": {
+        "name": "document_analyzer",
+        "description": """Useful if you need to analyze and extract information from a whole document. Not only snippets from it. 
+        Use this tool if you think you need to consider the whole document to answer th user query or if the user asks particularly for it.""",
         "parameters": {
             "type": "object",
             "properties": {
