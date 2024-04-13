@@ -11,8 +11,10 @@ from langchain_openai import AzureOpenAIEmbeddings, OpenAIEmbeddings
 from ..openai_functions.function_definitions import (
     PineconeDocumentSearch,
     PineconeDocumentFilterSearch,
+    DocumentAnalyzer,
     DOCUMENT_SEARCH,
     DOCUMENT_FILTER_SEARCH,
+    DOCUMENT_ANALYZER,
 )
 from ...base_classes.agent_base import OpenAIAgent
 from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
@@ -54,8 +56,18 @@ class OpenAIFunctionsAgent(OpenAIAgent):
                 ),
                 database_handler=database_handler,
             ),
+            "document_analyzer": DocumentAnalyzer(
+                embedding_model=OpenAIEmbeddings(
+                    model=config_data["language_models"]["embedding_model"]
+                ),
+                database_handler=database_handler,
+            ),
         }
-        function_definitions = [DOCUMENT_SEARCH, DOCUMENT_FILTER_SEARCH]
+        function_definitions = [
+            DOCUMENT_SEARCH,
+            DOCUMENT_FILTER_SEARCH,
+            DOCUMENT_ANALYZER,
+        ]
         return OpenAIFunctionsAgent(
             openai_client=OpenAI(),
             model_name=config_data["language_models"]["model_name"],
