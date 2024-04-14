@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Extra, Field
 from openai import OpenAI
 from langchain_openai import OpenAIEmbeddings
+from ...local_database.database_models import Document
 from ...utils.data_processing_utils import get_embedding
 from ...vector_database.pinecone.pinecone_database_handler import (
     PineconeDatabaseHandler,
@@ -59,7 +60,7 @@ class PineconeDocumentFilterSearch(BaseModel, extra=Extra.allow):
     description = "Useful if you need facts from a specific document to answer a user question. Information only from this document are considered."
     embedding_model: OpenAIEmbeddings
     database_handler: PineconeDatabaseHandler
-    filter: dict = Field(
+    filter_dict: dict = Field(
         default=None, description="Filter dictionary for the vector search"
     )
     meta_data: list[dict[str, str]] = Field(
@@ -73,7 +74,7 @@ class PineconeDocumentFilterSearch(BaseModel, extra=Extra.allow):
         )
         result_texts, result_files = self.database_handler.query(
             embedding=query_embeddings,
-            filter=self.filter,
+            filter=self.filter_dict,
             top_k=self.database_handler.pinecone_config.top_k,
         )
         result_text = "\n\n".join(result_texts)

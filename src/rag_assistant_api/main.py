@@ -114,7 +114,9 @@ def execute_rag():
                 400,
             )
     chat_messages = Conversation.get_chat_messages(conv_id=conv_id)
-    rag_model = OpenAIFunctionsAgent.initialize_agent()
+    rag_model = OpenAIFunctionsAgent.initialize_agent(
+        document_filter={"document_id": 5}
+    )
     chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
     agent_answer = rag_model.run(query=query, chat_messages=chat_messages)
     meta_data = rag_model.get_meta_data()

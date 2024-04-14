@@ -31,7 +31,7 @@ class OpenAIFunctionsAgent(OpenAIAgent):
     function_definitions: list[dict]
 
     @classmethod
-    def initialize_agent(cls):
+    def initialize_agent(cls, document_filter: dict = None):
         with open(os.getenv("CONFIG_FP"), "r") as file:
             config_data = yaml.safe_load(file)
         with open(os.getenv("PROMPT_CONFIGS_FP"), "r") as file:
@@ -55,6 +55,7 @@ class OpenAIFunctionsAgent(OpenAIAgent):
                     model=config_data["language_models"]["embedding_model"]
                 ),
                 database_handler=database_handler,
+                filter_dict=document_filter,
             ),
             "document_analyzer": DocumentAnalyzer(
                 embedding_model=OpenAIEmbeddings(
