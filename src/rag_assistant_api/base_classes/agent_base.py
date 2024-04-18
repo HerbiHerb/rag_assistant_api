@@ -18,6 +18,10 @@ class AgentBase(ABC, BaseModel):
         pass
 
 
+class LangchainAgent(AgentBase):
+    model_name: str
+
+
 class OpenAIAgent(AgentBase):
     openai_client: OpenAI
     model_name: str
