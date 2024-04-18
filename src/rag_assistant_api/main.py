@@ -12,7 +12,7 @@ from .utils.agent_utils import (
     extract_openai_chat_messages,
     cleanup_function_call_messages,
 )
-from .agents.openai_functions_agent.openai_functions_agent import OpenAIFunctionsAgent
+from .agents.openai_agents.openai_functions_agent import OpenAIFunctionsAgent
 from .data_structures.data_structures import (
     PineconeConfig,
     DataProcessingConfig,
