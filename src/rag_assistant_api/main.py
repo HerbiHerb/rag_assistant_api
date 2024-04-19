@@ -1,27 +1,34 @@
 import os
-from typing import List, Dict, Tuple
 import yaml
 import json
-from copy import deepcopy
+import openai
 from flask import jsonify, request
 import pinecone
-from .credentials.setup_credentials import set_openai_credentials, set_api_credentials
+from dotenv import load_dotenv
+from langchain.text_splitter import TokenTextSplitter
 from .init_flask_app import app
-from .database_models.database_models import Conversation, User
-from .agents.azure_openai_rag_model.rag_model import (
-    AzureOpenAIRAGModel,
-    initialize_rag_model,
+from .local_database.database_models import Conversation, User, Document
+from .utils.agent_utils import (
+    extract_openai_chat_messages,
+    cleanup_function_call_messages,
 )
-from .agents.agent_utils import insert_initial_system_msg, extract_openai_chat_messages
-from .agents.prompts import INITIAL_SYSTEM_MSG
-from .agents.openai_functions_agent.openai_functions_agent import (
-    OpenAIFunctionsAgent,
-    initialize_openai_functions_agent,
+from .agents.openai_agents.openai_functions_agent import OpenAIFunctionsAgent
+from .data_structures.data_structures import (
+    PineconeConfig,
+    DataProcessingConfig,
+    DocumentProcessingConfig,
 )
-from .data_processing.config_schemas import PineconeConfig, DataProcessingConfig
-from .data_processing.pinecone.pinecone_database_handler import PineconeDatabaseHandler
-from .data_processing.pinecone.generate_pinecone_db import generate_database
-from .credentials.setup_credentials import set_openai_credentials, set_api_credentials
+from .vector_database.pinecone.pinecone_database_handler import PineconeDatabaseHandler
+from .vector_database.pinecone.generate_pinecone_db import (
+    generate_database,
+    update_database,
+)
+from .utils.data_processing_utils import (
+    extract_meta_data,
+    remove_meta_data_from_text,
+    split_text_into_parts_and_chapters,
+)
+from .llm_tasks.summarization import summarize_text
 
 
 @app.route("/register_new_user", methods=["POST"])
@@ -107,34 +114,35 @@ def execute_rag():
                 400,
             )
     chat_messages = Conversation.get_chat_messages(conv_id=conv_id)
-    if not chat_messages or len(chat_messages) == 0:
-        chat_messages = insert_initial_system_msg(
-            initial_system_msg=INITIAL_SYSTEM_MSG, chat_messages=chat_messages
-        )
-    # rag_model = initialize_rag_model(
-    #     model_name="gpt-3.5-turbo-0125", embedding_model="text-embedding-ada-002"
-    # )
-    rag_model = initialize_openai_functions_agent(
-        model_name="gpt-3.5-turbo-0125", embedding_model="text-embedding-ada-002"
+    rag_model = OpenAIFunctionsAgent.initialize_agent(
+        document_filter={"document_id": 5}
     )
-    openai_chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
-    # agent_response, _, context_meta = rag_model.run(
-    #     query=str(query), chat_messages=deepcopy(openai_chat_messages)
-    # )
-    agent_answer = rag_model.run(
-        query=str(query), chat_messages=deepcopy(openai_chat_messages)
+    chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
+    agent_answer = rag_model.run(query=query, chat_messages=chat_messages)
+    meta_data = rag_model.get_meta_data()
+    chat_messages = cleanup_function_call_messages(chat_messages=chat_messages)
+    chat_messages.append(
+        {
+            "role": "assistant",
+            "content": agent_answer.final_answer,
+        }
     )
-    context_meta = []
-    user_message = {"role": "user", "content": query}
-    assistant_message = {
-        "role": "assistant",
-        "content": agent_answer.final_answer,
-        "urls": [meta_entry["URL"] for meta_entry in context_meta],
-    }
-    chat_messages.append(user_message)
-    chat_messages.append(assistant_message)
     Conversation.update_chat_messages(conv_id=conv_id, chat_messages=chat_messages)
-    return jsonify({"answer": agent_answer.final_answer, "meta": context_meta})
+    return jsonify({"answer": agent_answer.final_answer, "meta_data": meta_data})
+
+
+@app.route("/test_summarization", methods=["POST"])
+def test_summarization():
+    request_data = json.loads(request.data)
+    text = """Jedem Autor, vermute ich mal, schwebt eine Situation vor, in der Leser seines Werks von der Lektüre desselben profitieren könnten. Ich denke dabei an den Kaffeeautomaten im Büro, vor dem Mitarbeiter Ansichten und Tratsch mitei- nander austauschen. Meine Hoffnung ist, dass ich den Wortschatz bereichere, den Menschen benutzen, wenn sie sich über Urteile und Entscheidungen ande- rer, die neue Geschäftsstrategie ihres Unternehmens oder die Anlageentschei- dungen eines Kollegen unterhalten. Weshalb sich mit Tratsch befassen? Weil es viel leichter und auch viel angenehmer ist, die Fehler anderer zu erkennen und zu benennen als seine eigenen. Selbst unter den günstigsten Umständen fållt es uns schwer, unsere Uberzeugungen und VWünsche zu hinterfragen, und es fällt uns besonders schwer, wenn es am nötigsten wäre - aber wir können von den sachlich fundierten Meinungen anderer profitieren. Viele von uns nehmen in Gedanken von sich aus vorweg, wie Freunde und Kolegen unsere Entscheidun- gen beurteilen werden; deshalb kommt es maßgeblich auf Qualität und Inhalt dieser vorweggenommenen Urteile an. Die Erwartung intelligenten Geredes über uns ist ein starkes Motiv für ernsthafte Selbstkritik, stärker als alle an Silvester gefassten guten Vorsätze, die Entscheidungsfindung am Arbeitsplatz und zu Hause zu verbessern.
+Um zuverlässige Diagnosen zu stellen, muss ein Arzt eine Vielzahl von Krankheitsbezeichnungen lernen, und jeder dieser Termini verknüpft ein Kon- zept der Erkrankung mit ihren Symptomen, möglichen Vorstufen und Ursa- chen, möglichen Verläufen und Konsequenzen sowie möglichen Eingriffen zur Heilung oder Linderung der Krankheit. Das Erlernen der ärztlichen Heilkunst besteht auch darin, die medizinische Fachsprache zu erlernen. Um Urteile und Entscheidungen besser verstehen zu können, bedarf es eines reichhaltigeren Wortschatzes, als ihn die Alltagssprache zur Verfügung stellt. Die Tatsache, dass unsere Fehler charakteristische Muster aufweisen, begründet die Hoffnung darauf, dass andere in sachlich fundierter Weise über uns reden mögen. Syste- matische Fehler - auch »Verzerrungen« (biases) genannt - treten in vorherseh- barer Weise unter bestimmten Umnständen auf. Wenn ein attraktiver und selbstbewusster Redner dynamisch aufs Podium springt, kann man davon aus- gehen, das das Publikum seine Äußerungen günstiger beurteilt, als er es eigent- lich verdient. Die Verfügbarkeit eines diagnostischen Etiketts für diesen syste- natischen Fehler- der Halo-Efekt - erleichtert es, ihn vorwegzunehmen erkennen und zu verstehen. Wenn Sie gefragt werden, woran Sie gerade denken, können Sie diese Frage normalerweise beantworten. Sie glauben zu wissen, was in Ihrem Kopf vor sich geht - oftmals führt ein bewusster Gedanke in wohlgeordneter Weise zum nächsten. Aber das ist nicht die einzige Art und Weise, wie unser Denkver- mögen (mind) funktioniert, es ist nicht einmal seine typische Funktionsweise. Die meisten Eindrücke und Gedanken tauchen in unserem Bewusstsein auf, ohne dass wir wüssten, wie sie dorthin gelangten. Sie können nicht rekonstru- ieren, wie Sie zu der Überzeugung gelangten, eine Lampe stehe auf dem Schreibtisch vor Ihnen, wie es kam, dass Sie eine Spur von Verärgerung aus der Stimme Ihres Gatten am Telefon heraushörten, oder wie es Ihnen gelang, einer Gefahr auf der Straße auszuweichen, ehe Sie sich ihrer bewusst wurden. Die mentale Arbeit, die Eindrücke, Intuitionen und viele Entscheidungen hervor- bringt, vollzieht sich im Stillen in unserem Geist. Ein Schwerpunkt dieses Buches sind Fehler in unserem intuitiven Denken. Doch die Konzentration auf diese Fehler bedeutet keine Herabsetzung der menschlichen Intelligenz, ebenso wenig, wie das Interesse an Krankheiten in medizinischen Texten Gesundheit verleugnet. Die meisten von uns sind die meiste Zeit ihres Lebens gesund, und die meisten unserer Urteile und Handlun- gen sind meistens angemessen. Auf unserem Weg durchs Leben lassen wir uns normalerweise von Eindrücken und Gefühlen leiten, und das Vertrauen, das wir in unsere intuitiven Uberzeugungen und Präferenzen setzen, ist in der Regel gerechtfertigt. Aber nicht immer. Wir sind oft selbst dann von ihrer Richtigkeit überzeugt, wenn wir irren, und ein objektiver Beobachter erkennt unsere Fehler mit höherer Wahrscheinlichkeit als wir selbst. Und so wünsche ich mir, dass dieses Buch die Gespräche am Kaffeeauto- maten dadurch verändert, dass es unsere Fähigkeit verbessert, Urteils- und Ent- scheidungsfehler von anderen und schließlich auch von uns selbst zu erkennen und verstehen, indem es dem Leser eine differenzierte und exakte Sprache an die Hand gibt, in der sich diese Fehler diskutieren lassen. Eine zutreffende Diagnose mag wenigstens in einigen Fällen eine Korrektur ermöglichen, um den Schaden, den Fehlurteile und -entscheidungen verursachen, zu begrenzen.
+Dieses Buch stellt mein gegenwärtiges Verständnis von Urteils- und Entschei- dungsprozessen dar, das maßgeblich von psychologischen Entdeckungen der letzten Jabrzehnte geprägt wurde. Die zentralen Ideen gehen allerdings auf jenen glücklichen Tag des Jahres 1969 zurück, an dem ich einen Kollegen bat, als Gastredner in einem Seminar zu sprechen, das ich am Fachbereich Psycho- logie der Hebräischen Universität von Jerusalem hielt. Amos Tversky galt als ein aufstrebender Star auf dem Gebiet der Entscheidungsforschung - ja, auf allen Forschungsfeldern, auf denen er sich tummelte -, sodass ich wusste, dass es eine interessante Veranstaltung werden würde. Viele Menschen, die Amos kannten, hielten ihn für die intelligenteste Person, der sie je begegnet waren. Er war brillant, redegewandt und charismatisch. Er war auch mit einem voll- kommenen Gedächtnis für Witze gesegnet und mit einer außergewöhnlichen Fähigkeit, mit ihrer Hilfe ein Argument zu verdeurlichen. In Amos Gegenwart war es nie langweilig. Er war damals 32, ich war 35. Amos berichtete den Se- minarteilnehmern von einem aktuellen Forschungsprogramm an der Univer- sität Michigan, bei dem es um die Beantwortung der folgenden Frage ging: Sind Menschen gute intuitive Statistiker? Wir wussten bereits, dass Menschen gute intuitive Grammatiker sind: Ein vierjähriges Kind befolgt, wenn es spricht, mühelos die Regeln der Grammatik, obwohl es die Regeln als solche nicht kennt. Haben Menschen ein ähnlich intuitives Gespür für die grund- legenden Prinzipien der Statistik? Amos berichtete, die Antwort darauf sei ein bedingtes Ja. Wir hatten im Seminar eine lebhafte Diskussion, und wir ver- ständigten uns schließlich darauf, dass ein bedingres Nein eine bessere Ant- wort sei. Amos und mir machte dieser Meinungsaustausch großen Spaß, und wir gelangten zu dem Schluss, dass intuitive Statistik ein interessantes For- schungsgebiet sei und dass es uns reizen würde, dieses Feld gemeinsam zu er- forschen. An jenem Freitag trafen wir uns zum Mittagessen im Café Rimon, dem Stammlokal von Künstlern und Professoren in Jerusalem, und planten eine Studie über die statistischen Intuitionen von Wissenschaftlern. Wir wa- ren in diesem Seminar zu dem Schluss gelangt, dass unsere eigene Intuition unzureichend war. Obwohl wir beide schon jahrelang Statistik lehrten und anwandren, hatten wir kein intuitives Gespür für die Zuverlässigkeit statisti- scher Ergebnisse bei kleinen Stichproben entwickelt. Unsere subjektiven Ur- teile waren verzerrt: Wir schenkten allzu bereitwillig Forschungsergebnissen Glauben, die auf unzureichender Datengrundlage basierten, und neigten dazu, bei unseren eigenen Forschungsarbeiten zu wenig Beobachtungsdaten zu er- heben.! Mit unserer Studie wollten wir herausfinden, ob andere Forscher an der gleichen Schwäche litten. Wir bereiteten eine Umfrage vor, die realistische Szenarien statistischer Probleme beinhaltete, die in der Forschung auftreten. Amos trug die Ant- worten einer Gruppe von Experten zusammen, die an einer Tagung der So- ciety of Mathematical Psychology teilnahmen, darunter waren auch die Ver- fasser zweier Statistik-Lehrbücher. Wie erwartet fanden wir heraus, dass unsere Fachkollegen, genauso wie wir, die Wahrscheinlichkeit, dass das ur- sprüngliche Ergebnis eines Experiments auch bei einer kleinen Stichprobe erfolgreich reproduziert werden würde, enorm überschāzten. Auch gaben sie einer fiktiven Studentin sehr ungenaue Auskünfte über die Anzahl der Beob- achtungsdaten, die sie erheben müsse, um zu einer gültigen Schlussfolgerung zu gelangen. Selbst Statistiker waren also keine guten intuitiven Statistiker. Als wir den Artikel schrieben, in dem wir diese Ergebnisse darlegten, stellten Amos und ich fest, dass uns die Zusammenarbeit großen Spaß machte. Amos war immer sehr witzig, und in seiner Gegenwart wurde auch ich witzig, sodass wir Stunden gewissenhafter Arbeit in fortwährender Erheiterung verbrachten. Die Freude, die wir aus unserer Zusammenarbeit zogen, machte uns unge- wöhnlich geduldig; man strebt viel eher nach Perfektion, wenn man sich nicht langweilt. Am wichtigsten war vielleicht, dass wir unsere kritischen Waffen an der Tür abgaben. Sowohl Amos als auch ich waren kritisch und streitlustig - er noch mehr als ich, aber in den Jahren unserer Zusammenarbeit hat keiner von uns beiden irgendetwas, was der andere sagte, rundweg abgelehnt. Eine der größten Freuden, die mir die Zusammenarbeit mit Amos schenkte, bestand gerade darin, dass er viel deutlicher als ich selbst sah, worauf ich mit meinen vagen Gedanken hinauswollte. Amos war der bessere Logiker von uns beiden, er war theoretisch versierter und hatte einen untrüglichen Orientierungssinn. Ich hatte einen intuitiveren Zugang und war stärker in der Wahrnehmungs- psychologie verwurzelt, aus der wir viele Ideen übernahmen. Wir waren ein- ander hinreichend ähnlich, um uns mühelos zu verständigen, und wir waren hinreichend unterschiedlich, um uns gegenseitig zu überraschen. Wir ver- brachten routinemäßig einen Großteil unserer Arbeitstage zusammen, oftmals auf langen Spaziergängen. Während der kommenden 14 Jahre bildete diese Zusammenarbeit den Mittelpunkt unserer Leben, und unsere gemeinsamen Arbeiten aus dieser Zeit waren das Beste, was jeder von uns überhaupt an wissenschaftlichen Beiträgen lieferte.
+Wir entwickelten schon bald eine bestimmte Vorgehensweise, die wir viele Jahre lang beibehielten. Unsere Forschung bestand in einem Gespräch, in dem wir Fragen erfanden und gemeinsam unsere intuitiven Antworten überprüften. Jede Frage war ein kleines Experiment, und wir führten an jedem Tag viele Experimente durch. Wir suchten nicht ernsthaft nach der richtigen Antwort auf die statistischen Fragen, die wir stellten. Wir wollten die intuitive Antwort herausfinden und analysieren, die erste, die uns einfiel, diejenige, die wir spon- tan geben wollten, auch wenn wir wussten, dass sie falsch war. Wir glaubten- richtigerweise, wie sich zeigte -, dass jede Intuition, die wir beide teilten, auch von vielen anderen geteilt würde und dass es leicht wäre, ihre Auswirkungen auf Urteile nachzuweisen. Einmal entdeckten wir zu unserer großen Freude, dass wir die gleichen verrückten Ideen über die zukünftigen Berufe mehrerer Klein- kinder hatten, die wir beide kannten. Wir identifizierten den streitlustigen drei- jährigen Anwalt, den schrulligen Professor, den empathischen und leicht zu- dringlichen Psychotherapeuten. Natürlich waren diese Vorhersagen absurd, aber wir fanden sie trotzdem reizvoll. Es war auch klar, dass unsere Intuitionen von der Ähnlichkeit beeinflusst wurden, die das jeweilige Kind mit dem kultu- rellen Stereotyp eines bestimmten Berufs aufwies. Diese lustige Übung half uns dabei, eine Theorie zu entwickeln, die damals in unseren Köpfen im Entstehen begriffen war, und zwar über die Bedeutung der Ähnlichkeit bei Vorhersagen. Wir überprüften und verfeinerten diese Theorie in Dutzenden von Experimen- ten, wie etwa dem folgenden.
+	Wenn Sie über die nächste Frage nachdenken, sollten Sie davon ausgehen, dass Steve zufällig aus einer repräsentativen Stichprobe ausgewählt wurde:
+
+	Eine Person wurde von einem Nachbarn wie folgt beschrieben: » Steve ist sehr scheu und verschlossen, immer hilfsbereit, aber kaum an anderen oder an der Wirklichkeit interessiert. Als sanftmütiger und ordentlicher Mensch hat er ein Bedürfnis nach Ordnung und Struktur und eine Pas- sion für Details.« Ist Steve eher Bibliothekar oder eher Landwirt?"""
+    response = summarize_text(text=text)
+    return response
 
 
 @app.route("/get_latest_conv_id", methods=["POST"])
@@ -195,7 +203,7 @@ def generate_vector_db():
     Returns:
         JSON response containing the information of the created database.
     """
-    with open(os.getenv("VECTOR_DB_CONFIG_FP"), "r") as file:
+    with open(os.getenv("CONFIG_FP"), "r") as file:
         config_data = yaml.safe_load(file)
     data_processing_config = DataProcessingConfig(**config_data["data_processing"])
     pinecone_config = PineconeConfig(**config_data["pinecone_db"])
@@ -204,9 +212,40 @@ def generate_vector_db():
         data_processing_config=data_processing_config,
         pinecone_config=PineconeConfig(**config_data["pinecone_db"]),
     )
-    test = 0
     generate_database(database_handler=database_handler)
     return f"Database generated"
+
+
+@app.route("/upload_document", methods=["POST"])
+def upload_document():
+    with open(os.getenv("CONFIG_FP"), "r") as file:
+        config_data = yaml.safe_load(file)
+    data_processing_config = DataProcessingConfig(**config_data["data_processing"])
+    pinecone_config = PineconeConfig(**config_data["pinecone_db"])
+    database_handler = PineconeDatabaseHandler(
+        index=pinecone.Index(pinecone_config.index_name),
+        data_processing_config=data_processing_config,
+        pinecone_config=pinecone_config,
+    )
+    uploaded_text = request.data.decode("utf-8")
+    document_config = DocumentProcessingConfig(**config_data["document_processing"])
+    meta_data = extract_meta_data(
+        extraction_pattern=document_config.meta_data_pattern,
+        document_text=uploaded_text,
+    )
+    uploaded_text = remove_meta_data_from_text(text=uploaded_text)
+    update_database(
+        text=uploaded_text,
+        text_meta_data=meta_data,
+        database_handler=database_handler,
+        document_processing_config=document_config,
+    )
+    document_id = Document.save_document(
+        user_id=meta_data["user_id"],
+        document_type=meta_data["type"],
+        document_text=uploaded_text,
+    )
+    return f"Inserted document id {document_id}"
 
 
 def main():
@@ -214,19 +253,18 @@ def main():
     Main function to initialize the Flask application.
     It sets up environment variables, loads configuration, and starts the Flask app.
     """
-    os.environ["AGENT_CONFIG_FP"] = "config/agent-config/default.yaml"
-    os.environ["CREDENTIALS_FP"] = "config/credentials/credentials.yaml"
-    os.environ["VECTOR_DB_CONFIG_FP"] = "config/data-config/default.yaml"
+    load_dotenv()
     with open(
-        os.environ["AGENT_CONFIG_FP"],
+        os.environ["CONFIG_FP"],
         "r",
     ) as file:
         config = yaml.safe_load(file)
-    if config["language_model"]["service"] == "OpenAI":
-        set_openai_credentials()
-    elif config["language_model"]["service"] == "AzureOpenAI":
-        set_api_credentials()
-
+    if config["language_models"]["service"] == "OpenAI":
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+        pinecone.init(
+            api_key=os.getenv("PINECONE_API_KEY"),
+            environment=os.getenv("PINECONE_ENVIRONMENT"),
+        )
     app.run(host="0.0.0.0", port=8080, debug=True)
 
 

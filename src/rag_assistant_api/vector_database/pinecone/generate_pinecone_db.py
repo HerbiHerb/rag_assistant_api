@@ -7,61 +7,29 @@ import yaml
 from copy import deepcopy
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import TokenTextSplitter
-from ..config_schemas import PineconeConfig, DataProcessingConfig
-from ..data_processing_utils import (
-    parse_xml_beautiful_soup,
-    split_txt_file,
+from ...data_structures.data_structures import (
+    PineconeConfig,
+    DataProcessingConfig,
+    DocumentProcessingConfig,
+)
+from ...utils.data_processing_utils import (
+    split_text_into_parts_and_chapters,
+    split_texts_by_keywords,
+    split_texts_into_chunks,
     get_embedding,
     check_for_ignore_prefix,
+    extract_meta_data,
+    remove_meta_data_from_text,
 )
-from ...credentials.setup_credentials import set_api_credentials
 from ...base_classes.database_handler import DatabaseHandler
-
-
-def remove_meta_data_from_text(text: str):
-    splitted_text = text.split("$END_META_DATA")
-    if splitted_text:
-        return splitted_text[1]
-
-
-def extract_meta_data_values(
-    extracted_lines: list[str], meta_data_dict: dict[str, str]
-):
-    for key in meta_data_dict:
-        match_lines = [line for line in extracted_lines if key in line]
-        if len(match_lines) > 0:
-            extracted_values = re.findall(rf"{key}:?[\s]?(.*)", match_lines[0])
-            meta_data_dict[key] = (
-                extracted_values[0] if len(extracted_values) > 0 else None
-            )
-    return meta_data_dict
-
-
-def extract_meta_data(extraction_pattern: str, document_text: str):
-    matches = re.findall(extraction_pattern, document_text)
-    meta_data_dict = {
-        "document_name": None,
-        "autor": None,
-        "date": None,
-        "genre": None,
-        "field": None,
-        "type": None,
-    }
-    if matches:
-        extracted_str_lines = matches[0].split("\n")
-        extracted_str_lines = [line for line in extracted_str_lines if len(line) > 0]
-        meta_data_dict = extract_meta_data_values(
-            extracted_lines=extracted_str_lines, meta_data_dict=meta_data_dict
-        )
-    return meta_data_dict
 
 
 def process_file(
     file_path: str,
-    meta_file_path: str,
     text_splitter,
-    embedding_model: str,
+    embedding_model: OpenAIEmbeddings,
     database_handler: DatabaseHandler,
+    document_config: DocumentProcessingConfig,
 ):
     """
     Processes a single text file by dividing it into text sections,
@@ -77,13 +45,17 @@ def process_file(
     with open(file_path, "r", encoding="utf-8") as text_file:
         text = text_file.read()
         meta_data = extract_meta_data(
-            extraction_pattern=r"(?s)\$META_DATA(.*)\$END_META_DATA", document_text=text
+            extraction_pattern=document_config.meta_data_pattern, document_text=text
         )
         text = remove_meta_data_from_text(text=text)
-        text_chunks_with_chapter = split_txt_file(text, text_splitter=text_splitter)
-
+        text_chunks_with_chapter = split_text_into_parts_and_chapters(
+            text, document_processing_config=document_config
+        )
+        text_chunks = split_texts_into_chunks(
+            text_dicts=text_chunks_with_chapter, text_splitter=text_splitter
+        )
         upload_chunks_in_batches(
-            text_chunks_with_chapter,
+            text_chunks,
             meta_data,
             embedding_model,
             database_handler,
@@ -107,7 +79,7 @@ def empty_database(database_handler: DatabaseHandler) -> None:
 def upload_chunks_in_batches(
     text_chunks_with_chapters: list[str],
     meta_data: dict,
-    embedding_model: str,
+    embedding_model: OpenAIEmbeddings,
     database_handler: DatabaseHandler,
 ):
     """
@@ -155,17 +127,17 @@ def generate_database(database_handler: DatabaseHandler):
     Args:
     - config: An instance of the PineconeConfig class with the necessary configurations.
     """
-    with open(os.environ["VECTOR_DB_CONFIG_FP"], "r") as file:
+    with open(os.environ["CONFIG_FP"], "r") as file:
         config_data = yaml.safe_load(file)
-    meta_prefix = config_data["data_processing"]["meta_prefix"]
-    set_api_credentials()
     empty_database(database_handler=database_handler)
-    embedding_model = OpenAIEmbeddings(model="text-embedding-ada-002")
+    embedding_model = OpenAIEmbeddings(
+        model=config_data["language_models"]["embedding_model"]
+    )
     text_splitter = TokenTextSplitter(
         chunk_size=database_handler.data_processing_config.chunk_size,
         chunk_overlap=database_handler.data_processing_config.overlap,
     )
-
+    document_config = DocumentProcessingConfig(**config_data["document_processing"])
     for subdir, dirs, files in os.walk(
         database_handler.data_processing_config.data_folder_fp
     ):
@@ -174,11 +146,39 @@ def generate_database(database_handler: DatabaseHandler):
                 file, ignore_prefix="meta"
             ):
                 file_path = os.path.join(subdir, file)
-                meta_file_path = os.path.join(subdir, meta_prefix + file)
                 process_file(
                     file_path,
-                    meta_file_path,
                     text_splitter,
                     embedding_model,
                     database_handler=database_handler,
+                    document_config=document_config,
                 )
+
+
+def update_database(
+    text: str,
+    text_meta_data: dict,
+    database_handler: DatabaseHandler,
+    document_processing_config: DocumentProcessingConfig,
+):
+    with open(os.environ["CONFIG_FP"], "r") as file:
+        config_data = yaml.safe_load(file)
+    embedding_model = OpenAIEmbeddings(
+        model=config_data["language_models"]["embedding_model"]
+    )
+    text_splitter = TokenTextSplitter(
+        chunk_size=database_handler.data_processing_config.chunk_size,
+        chunk_overlap=database_handler.data_processing_config.overlap,
+    )
+    text_chunks_with_chapter = split_text_into_parts_and_chapters(
+        text=text, document_processing_config=document_processing_config
+    )
+    text_chunks = split_texts_into_chunks(
+        text_dicts=text_chunks_with_chapter, text_splitter=text_splitter
+    )
+    upload_chunks_in_batches(
+        text_chunks,
+        text_meta_data,
+        embedding_model,
+        database_handler,
+    )

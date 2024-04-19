@@ -60,7 +60,9 @@ class Conversation(db.Model):
 
     def generate_new_conversation(user_id: int):
         try:
-            conversation = Conversation(user_id=user_id, timestamp_last_message=datetime.now())
+            conversation = Conversation(
+                user_id=user_id, timestamp_last_message=datetime.now()
+            )
             db.session.add(conversation)
             db.session.commit()
             return conversation.id
@@ -89,45 +91,36 @@ class Conversation(db.Model):
         try:
             user = User.query.get(user_id)
             conversations = user.conversations
-            return conversations[-1].id if conversations != None and len(conversations) > 0 else None
+            return (
+                conversations[-1].id
+                if conversations != None and len(conversations) > 0
+                else None
+            )
         except Exception as e:
             print(e)
 
 
-# class Sources(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     message_idx = db.Column(db.Integer, nullable=False)
-#     sources = db.Column(db.Text, nullable=False)
-#     conv_id = db.Column(db.Integer, db.ForeignKey("conversation.id"), nullable=False)
+class Document(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    document_type = db.Column(db.Text, nullable=False)
+    document_text = db.Column(db.Text, nullable=False)
+    chapter_with_summaries = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
-#     def save_observation(conv_id: int, message_idx: int, new_sources: List):
-#         observation = Sources.query.filter(Sources.conv_id == conv_id, Sources.message_idx == message_idx).first()
-#         if observation != None:
-#             observation.observation = json.dumps(new_sources)
-#         else:
-#             observation = Sources(
-#                 message_idx=message_idx,
-#                 sources=json.dumps(new_sources),
-#                 conv_id=conv_id,
-#             )
-#         db.session.add(observation)
-#         db.session.commit()
+    def save_document(user_id: int, document_type: str, document_text: str):
+        document = Document(
+            user_id=user_id, document_type=document_type, document_text=document_text
+        )
+        db.session.add(document)
+        db.session.commit()
+        return document.id
 
-#     def get_observation(conv_id: int, message_idx: int):
-#         source = Sources.query.filter(Sources.conv_id == conv_id, Sources.message_idx == message_idx).first()
-#         if source != None:
-#             return json.loads(source.sources)
-#         else:
-#             return []
 
-#     def delete_observation(conv_id: int, message_idx: int):
-#         source = Sources.query.filter(Sources.conv_id == conv_id, Sources.message_idx == message_idx).first()
-#         if source != None:
-#             db.session.delete(source)
-#             db.session.commit()
+class UserInformation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    information_type = db.Column(db.Text, nullable=False)
+    information_text = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
-#     def delete_all_observations(conv_id: int):
-#         sources = Sources.query.filter(Sources.conv_id == conv_id)
-#         for source in sources:
-#             db.session.delete(source)
-#         db.session.commit()
+    def save_user_information(user_id: int, information_text: str):
+        pass

@@ -1,4 +1,4 @@
-# LLM-Assistant-API
+# RAG-Assistant-API
 
 In diesem Repository wird ein Chatbot implementiert, welcher Zugang zu Vektordatenbank hat, um relevante 
 Informationen bezüglich einer vom Nutzer gestellten Anfrage zu ziehen und eine fundierte Antwort zurückzuliefern.

@@ -1,5 +1,5 @@
-from typing import Any, Iterable, List, Dict, Tuple
-from ..config_schemas import PineconeConfig, DataProcessingConfig
+from typing import Any, Iterable
+from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
 import pinecone
 from ...base_classes.database_handler import DatabaseHandler
 import pinecone
@@ -31,7 +31,7 @@ class PineconeDatabaseHandler(DatabaseHandler):
 
     def query(
         self, embedding: Iterable, top_k: int, filter: dict = None
-    ) -> Tuple[List[str]]:
+    ) -> tuple[list[str]]:
         query_results = self.index.query(
             vector=embedding,
             filter=filter,
@@ -46,5 +46,5 @@ class PineconeDatabaseHandler(DatabaseHandler):
         ]
         return result_texts, result_meta
 
-    def upsert(self, data: List[Dict[str, Any]]) -> None:
+    def upsert(self, data: list[dict[str, Any]]) -> None:
         self.index.upsert(vectors=data)

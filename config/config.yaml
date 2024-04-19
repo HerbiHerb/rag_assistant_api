@@ -1,0 +1,28 @@
+language_models:  
+  service: "OpenAI"
+  #model_name: "gpt-3.5-turbo-0125"
+  model_name: "gpt-4-turbo"
+  embedding_model: text-embedding-ada-002
+  deployment_name: "gpt-35-turbo"
+  temp": 0.0
+document_processing:
+  meta_data_pattern: '(?s)\$META_DATA(.*)\$END_META_DATA'
+  part_seperator: "$PART$"
+  chapter_seperator: "$CHAPTER$"
+  subchapter_seperator: "$SUBCHAPTER$"
+  meta_data_fields: ["document_name", "autor", "date", "genre", "field", "type", "user_id"]
+data_processing:
+  data_folder_fp: "src/data/raw_data/rag_assistant_txt_files/"
+  batch_size: 10
+  chunk_size: 384
+  overlap: 80
+  embedding_model: "text-embedding-ada-002"
+  embeddings_file_path: "src/data_processing/embeddings.csv"
+  config_credentials: "src/config/credentials"
+  meta_prefix: "meta_"
+pinecone_db:
+  index_name: "jarvis-index"
+  dimension: 1536
+  top_k: 5
+  metric: "cosine"
+  config_credentials: "config/credentials" 
