@@ -12,9 +12,11 @@ from ..openai_functions.function_definitions import (
     PineconeDocumentSearch,
     PineconeDocumentFilterSearch,
     DocumentAnalyzer,
+    MathInformationLoader,
     DOCUMENT_SEARCH,
     DOCUMENT_FILTER_SEARCH,
     DOCUMENT_ANALYZER,
+    MATH_INFORMATION_LOADER,
 )
 from ...base_classes.agent_base import OpenAIAgent
 from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
@@ -63,11 +65,18 @@ class OpenAIFunctionsAgent(OpenAIAgent):
                 ),
                 database_handler=database_handler,
             ),
+            "math_information_loader": MathInformationLoader(
+                embedding_model=OpenAIEmbeddings(
+                    model=config_data["language_models"]["embedding_model"]
+                ),
+                database_handler=database_handler,
+            ),
         }
         function_definitions = [
             DOCUMENT_SEARCH,
             DOCUMENT_FILTER_SEARCH,
             DOCUMENT_ANALYZER,
+            MATH_INFORMATION_LOADER,
         ]
         return OpenAIFunctionsAgent(
             openai_client=OpenAI(),

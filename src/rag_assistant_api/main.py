@@ -28,7 +28,7 @@ from .utils.data_processing_utils import (
     remove_meta_data_from_text,
     split_text_into_parts_and_chapters,
 )
-from .llm_tasks.summarization import summarize_text
+from .llm_tasks.openai_task_functions import summarize_text
 
 
 @app.route("/register_new_user", methods=["POST"])
