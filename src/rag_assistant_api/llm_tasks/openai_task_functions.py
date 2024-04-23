@@ -1,6 +1,7 @@
 import os
 import openai
 import yaml
+from ..utils.data_processing_utils import list_str_conversion
 
 
 def summarize_text(text: str):
@@ -17,6 +18,7 @@ def summarize_text(text: str):
         model=config_data["language_models"]["model_name"],
         temperature=config_data["language_models"]["temp"],
     )
+
     return response
 
 
@@ -37,4 +39,5 @@ def reformulate_query(query: str) -> list[str]:
         model="gpt-3.5-turbo-0125",
         temperature=config_data["language_models"]["temp"],
     )
-    return response
+    converted_json_list = list_str_conversion(response.choices[0].message.content)
+    return converted_json_list if converted_json_list else [response]

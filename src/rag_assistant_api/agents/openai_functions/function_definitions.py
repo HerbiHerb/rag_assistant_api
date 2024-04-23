@@ -170,6 +170,7 @@ class MathInformationLoader(BaseModel, extra=Extra.allow):
 
     def __call__(self, search_string: str) -> str:
         """Use the tool"""
+        # TODO: iterate over reformulations and extract all relevant texts from the reformulations
         reformulations = reformulate_query(query=search_string)
         query_embeddings = get_embedding(
             search_string, embedding_model=self.embedding_model
