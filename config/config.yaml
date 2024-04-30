@@ -4,7 +4,7 @@ language_models:
   model_name: "gpt-4-turbo"
   embedding_model: text-embedding-ada-002
   deployment_name: "gpt-35-turbo"
-  temp": 0.0
+  temp: 0.0
 document_processing:
   meta_data_pattern: '(?s)\$META_DATA(.*)\$END_META_DATA'
   part_seperator: "$PART$"

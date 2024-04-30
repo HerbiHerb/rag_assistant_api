@@ -6,3 +6,5 @@
 {"query":"Wo ist Elon Musk aufgewachsen?", "user_id":1}
 
 {"query":"Was steht im Buch Schnelles Denken langsames Denken zum Thema Entscheidungsfindung?", "user_id":1}
+
+{"query":"Ich möchte relevante mthematische Sätze aus der Stochastik lernen. Kannst du mir ein paar zeigen?", "user_id":1}
