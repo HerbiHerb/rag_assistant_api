@@ -1,10 +1,27 @@
-import os
+import ast
 import re
+from typing import Any
 from copy import deepcopy
-import yaml
+import json
 from langchain.text_splitter import TokenTextSplitter
 from ..data_structures.data_structures import DocumentProcessingConfig
 from ..base_classes.embedding_base import EmbeddingModel
+
+
+def list_str_conversion(list_str: str) -> Any:
+    try:
+        converted_list_str = ast.literal_eval(list_str)
+        return converted_list_str
+    except Exception as e:
+        print(e)
+
+
+def json_load_function(json_str: str) -> Any:
+    try:
+        loaded_json_data = json.loads(json_str)
+        return loaded_json_data
+    except Exception as e:
+        print(e)
 
 
 def check_for_ignore_prefix(file_name: str, ignore_prefix: str):
