@@ -24,6 +24,33 @@ from ...utils.data_processing_utils import (
 from ...base_classes.database_handler import DatabaseHandler
 
 
+def generate_text_chunks(
+    text: str,
+    text_splitter: TokenTextSplitter,
+    document_config: DocumentProcessingConfig,
+):
+    text_chunks_with_chapter = split_text_into_parts_and_chapters(
+        text, document_processing_config=document_config
+    )
+    text_chunks = split_texts_into_chunks(
+        text_dicts=text_chunks_with_chapter, text_splitter=text_splitter
+    )
+    return text_chunks
+
+
+def extract_text_and_meta_data(
+    file_path: str,
+    document_config: DocumentProcessingConfig,
+):
+    with open(file_path, "r", encoding="utf-8") as text_file:
+        text = text_file.read()
+        meta_data = extract_meta_data(
+            extraction_pattern=document_config.meta_data_pattern, document_text=text
+        )
+        text = remove_meta_data_from_text(text=text)
+        return text, meta_data
+
+
 def process_file(
     file_path: str,
     text_splitter,
@@ -129,7 +156,7 @@ def generate_database(database_handler: DatabaseHandler):
     """
     with open(os.environ["CONFIG_FP"], "r") as file:
         config_data = yaml.safe_load(file)
-    empty_database(database_handler=database_handler)
+    database_handler.create_database()
     embedding_model = OpenAIEmbeddings(
         model=config_data["language_models"]["embedding_model"]
     )
@@ -146,12 +173,19 @@ def generate_database(database_handler: DatabaseHandler):
                 file, ignore_prefix="meta"
             ):
                 file_path = os.path.join(subdir, file)
-                process_file(
-                    file_path,
-                    text_splitter,
-                    embedding_model,
-                    database_handler=database_handler,
+                text, meta_data = extract_text_and_meta_data(
+                    file_path=file_path, document_config=document_config
+                )
+                text_chunks = generate_text_chunks(
+                    text=text,
+                    text_splitter=text_splitter,
                     document_config=document_config,
+                )
+                upload_chunks_in_batches(
+                    text_chunks,
+                    meta_data,
+                    embedding_model,
+                    database_handler,
                 )
 
 

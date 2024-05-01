@@ -5,20 +5,24 @@ import openai
 from flask import jsonify, request
 import pinecone
 from dotenv import load_dotenv
-from langchain.text_splitter import TokenTextSplitter
 from .init_flask_app import app
 from .local_database.database_models import Conversation, User, Document
 from .utils.agent_utils import (
     extract_openai_chat_messages,
     cleanup_function_call_messages,
 )
-from .agents.openai_agents.openai_functions_agent import OpenAIFunctionsAgent
+
+# from .agents.openai_agents.openai_functions_agent import OpenAIFunctionsAgent
+from .agents.agent_factory import AgentFactory
 from .data_structures.data_structures import (
     PineconeConfig,
+    ChromaDBConfig,
     DataProcessingConfig,
     DocumentProcessingConfig,
+    ConfigFileValidator,
 )
 from .vector_database.pinecone.pinecone_database_handler import PineconeDatabaseHandler
+from .vector_database.chroma_db.chroma_db_database_handler import ChromaDatabaseHandler
 from .vector_database.pinecone.generate_pinecone_db import (
     generate_database,
     update_database,
@@ -28,7 +32,13 @@ from .utils.data_processing_utils import (
     remove_meta_data_from_text,
     split_text_into_parts_and_chapters,
 )
-from .llm_tasks.openai_task_functions import summarize_text
+from .llm_functionalities.summarization import summarize_text
+
+
+@app.route("/", methods=["GET"])
+def home():
+    print("Hello world")
+    return "Hello world"
 
 
 @app.route("/register_new_user", methods=["POST"])
@@ -114,11 +124,11 @@ def execute_rag():
                 400,
             )
     chat_messages = Conversation.get_chat_messages(conv_id=conv_id)
-    rag_model = OpenAIFunctionsAgent.initialize_agent(
-        document_filter={"document_id": 5}
-    )
+    rag_model = AgentFactory.create_agent()
     chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
-    agent_answer = rag_model.run(query=query, chat_messages=chat_messages)
+    agent_answer, chat_messages = rag_model.run(
+        query=query, chat_messages=chat_messages
+    )
     meta_data = rag_model.get_meta_data()
     chat_messages = cleanup_function_call_messages(chat_messages=chat_messages)
     chat_messages.append(
@@ -206,11 +216,15 @@ def generate_vector_db():
     with open(os.getenv("CONFIG_FP"), "r") as file:
         config_data = yaml.safe_load(file)
     data_processing_config = DataProcessingConfig(**config_data["data_processing"])
-    pinecone_config = PineconeConfig(**config_data["pinecone_db"])
-    database_handler = PineconeDatabaseHandler(
-        index=pinecone.Index(pinecone_config.index_name),
-        data_processing_config=data_processing_config,
-        pinecone_config=PineconeConfig(**config_data["pinecone_db"]),
+    # pinecone_config = PineconeConfig(**config_data["pinecone_db"])
+    chroma_db_config = ChromaDBConfig(**config_data["chroma_db"])
+    # database_handler = PineconeDatabaseHandler(
+    #     index=pinecone.Index(pinecone_config.index_name),
+    #     data_processing_config=data_processing_config,
+    #     pinecone_config=PineconeConfig(**config_data["pinecone_db"]),
+    # )
+    database_handler = ChromaDatabaseHandler(
+        chroma_db_config=chroma_db_config, data_processing_config=data_processing_config
     )
     generate_database(database_handler=database_handler)
     return f"Database generated"
@@ -258,14 +272,36 @@ def main():
         os.environ["CONFIG_FP"],
         "r",
     ) as file:
-        config = yaml.safe_load(file)
-    if config["language_models"]["service"] == "OpenAI":
+        config_data = yaml.safe_load(file)
+    try:
+        ConfigFileValidator(
+            usage_settings=config_data["usage_settings"],
+            data_processing_config=DataProcessingConfig(
+                **config_data["data_processing"]
+            ),
+            document_processing_config=DocumentProcessingConfig(
+                **config_data["document_processing"]
+            ),
+            chroma_db_config=ChromaDBConfig(**config_data["chroma_db"]),
+            pinecone_db_config=PineconeConfig(**config_data["pinecone_db"]),
+            prompt_configs_fp=os.getenv("PROMPT_CONFIGS_FP"),
+        )
+    except AssertionError as e:
+        print(e)
+        print("Error in config file validation occured!")
+        return
+    except ValueError as e:
+        print(e)
+        print("Error in config file validation occured!")
+        return
+
+    if config_data["usage_settings"]["llm_service"] == "openai":
         openai.api_key = os.getenv("OPENAI_API_KEY")
         pinecone.init(
             api_key=os.getenv("PINECONE_API_KEY"),
             environment=os.getenv("PINECONE_ENVIRONMENT"),
         )
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
 
 
 if __name__ == "__main__":

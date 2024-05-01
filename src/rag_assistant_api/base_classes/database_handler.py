@@ -1,17 +1,17 @@
 from abc import abstractmethod
-from pydantic import BaseModel, ConfigDict
-from typing import Any, Iterable, List, Tuple
+from pydantic import BaseModel, ConfigDict, Extra
+from typing import Any, Iterable, List, Tuple, Type
+import pinecone
 from ..data_structures.data_structures import DataProcessingConfig
+from ..data_structures.data_structures import (
+    PineconeConfig,
+    DataProcessingConfig,
+    ChromaDBConfig,
+)
 
 
-class DatabaseHandler(BaseModel):
+class DatabaseHandler(BaseModel, arbitrary_types_allowed=True):
     data_processing_config: DataProcessingConfig
-
-    class Config:
-        arbitrary_types_allowed = True
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
     @abstractmethod
     def create_database() -> None:
