@@ -7,12 +7,16 @@ import yaml
 from copy import deepcopy
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import TokenTextSplitter
-from ...data_structures.data_structures import (
+from pdfminer.high_level import extract_text
+import chromadb
+from chromadb.utils import embedding_functions
+from chromadb.config import Settings
+from ..data_structures.data_structures import (
     PineconeConfig,
     DataProcessingConfig,
     DocumentProcessingConfig,
 )
-from ...utils.data_processing_utils import (
+from ..utils.data_processing_utils import (
     split_text_into_parts_and_chapters,
     split_texts_by_keywords,
     split_texts_into_chunks,
@@ -21,7 +25,10 @@ from ...utils.data_processing_utils import (
     extract_meta_data,
     remove_meta_data_from_text,
 )
-from ...base_classes.database_handler import DatabaseHandler
+from ..base_classes.database_handler import DatabaseHandler
+from ..llm_functionalities.embedding_models.embedding_model_factory import (
+    create_embedding_model,
+)
 
 
 def generate_text_chunks(
@@ -51,7 +58,7 @@ def extract_text_and_meta_data(
         return text, meta_data
 
 
-def process_file(
+def process_txt_file(
     file_path: str,
     text_splitter,
     embedding_model: OpenAIEmbeddings,
@@ -87,6 +94,38 @@ def process_file(
             embedding_model,
             database_handler,
         )
+
+
+def process_pdf_file(
+    file_path: str,
+    text_splitter,
+    embedding_model: OpenAIEmbeddings,
+    database_handler: DatabaseHandler,
+    document_config: DocumentProcessingConfig,
+):
+    """
+    Processes a single pdf file by dividing it into text sections,
+    creating embeddings for the sections, and uploading the data to a vector database.
+
+    Args:
+    - file_path: Path to the file to be processed.
+    - meta_file_path: Path to the file with the corresponding meta data.
+    - text_splitter: Instance of TokenTextSplitter for text segmentation.
+    - embedding_model: Model for generating embeddings.
+    - config: Configuration settings for the batch size and other options.
+    """
+    text = extract_text(file_path)
+    text_dict = [{"text": text}]
+    text_chunks = split_texts_into_chunks(
+        text_dicts=text_dict, text_splitter=text_splitter
+    )
+    meta_data = {"text": text}
+    upload_chunks_in_batches(
+        text_chunks,
+        meta_data,
+        embedding_model,
+        database_handler,
+    )
 
 
 def empty_database(database_handler: DatabaseHandler) -> None:
@@ -156,9 +195,23 @@ def generate_database(database_handler: DatabaseHandler):
     """
     with open(os.environ["CONFIG_FP"], "r") as file:
         config_data = yaml.safe_load(file)
-    database_handler.create_database()
-    embedding_model = OpenAIEmbeddings(
-        model=config_data["language_models"]["embedding_model"]
+    # database_handler.create_database()
+    client = chromadb.Client(
+        Settings(
+            chroma_db_impl="duckdb+parquet",
+            persist_directory=database_handler.db_config.chroma_db_fp,
+        )
+    )
+    collection = client.create_collection(
+        name=database_handler.db_config.collection_name,
+        metadata={"hnsw:space": "cosine"},
+        embedding_function=embedding_functions.OpenAIEmbeddingFunction(
+            model_name="text-embedding-ada-002"
+        ),
+    )
+    embedding_model = create_embedding_model(
+        llm_service=config_data["usage_settings"]["llm_service"],
+        model=config_data["language_models"]["embedding_model"],
     )
     text_splitter = TokenTextSplitter(
         chunk_size=database_handler.data_processing_config.chunk_size,
@@ -169,24 +222,62 @@ def generate_database(database_handler: DatabaseHandler):
         database_handler.data_processing_config.data_folder_fp
     ):
         for file in files:
-            if file.endswith(".txt") and not check_for_ignore_prefix(
-                file, ignore_prefix="meta"
-            ):
+            if file.endswith(".txt"):
                 file_path = os.path.join(subdir, file)
-                text, meta_data = extract_text_and_meta_data(
-                    file_path=file_path, document_config=document_config
-                )
-                text_chunks = generate_text_chunks(
-                    text=text,
+                process_txt_file(
+                    file_path=file_path,
                     text_splitter=text_splitter,
+                    embedding_model=embedding_model,
+                    database_handler=database_handler,
                     document_config=document_config,
                 )
-                upload_chunks_in_batches(
-                    text_chunks,
-                    meta_data,
-                    embedding_model,
-                    database_handler,
+            elif file.endswith(".pdf"):
+                file_path = os.path.join(subdir, file)
+                text = extract_text(file_path)
+                text_dict = [{"text": text}]
+                text_chunks = split_texts_into_chunks(
+                    text_dicts=text_dict, text_splitter=text_splitter
                 )
+                curr_batch = []
+                for chunk_dict in text_chunks:
+                    text = chunk_dict["text"]
+                    meta_data = {"text": text}
+                    unique_id = str(uuid.uuid4())
+                    embedding = get_embedding(
+                        text=text, embedding_model=embedding_model
+                    )
+                    vector_data = {
+                        "id": unique_id,
+                        "values": embedding,
+                        "metadata": deepcopy(meta_data),
+                    }
+                    curr_batch.append(vector_data)
+
+                    if (
+                        len(curr_batch)
+                        == database_handler.data_processing_config.batch_size
+                    ):
+                        print("Batch-Hochladen")
+                        embeddings = [doc_data["values"] for doc_data in curr_batch]
+                        meta_data = [doc_data["metadata"] for doc_data in curr_batch]
+                        ids = [str(uuid.uuid4()) for idx in range(len(embeddings))]
+                        collection.add(
+                            embeddings=embeddings, metadatas=meta_data, ids=ids
+                        )
+                        curr_batch = []
+                if curr_batch:
+                    embeddings = [doc_data["values"] for doc_data in curr_batch]
+                    meta_data = [doc_data["metadata"] for doc_data in curr_batch]
+                    ids = [str(uuid.uuid4()) for idx in range(len(embeddings))]
+                    collection.add(embeddings=embeddings, metadatas=meta_data, ids=ids)
+
+                # process_pdf_file(
+                #     file_path=file_path,
+                #     text_splitter=text_splitter,
+                #     embedding_model=embedding_model,
+                #     database_handler=database_handler,
+                #     document_config=document_config,
+                # )
 
 
 def update_database(

@@ -29,29 +29,33 @@ class ChromaDatabaseHandler(DatabaseHandler, extra=Extra.allow):
                 persist_directory=self.db_config.chroma_db_fp,
             )
         )
-        self.collection = self.client.get_collection(
-            name=self.db_config.collection_name,
-            embedding_function=embedding_functions.OpenAIEmbeddingFunction(
-                model_name=self.data_processing_config.embedding_model
-            ),
-        )
+        try:
+            self.collection = self.client.get_collection(
+                name=self.db_config.collection_name,
+                embedding_function=embedding_functions.OpenAIEmbeddingFunction(
+                    model_name=self.data_processing_config.embedding_model
+                ),
+            )
+        except Exception as e:
+            print(e)
 
     def create_database(self) -> None:
         try:
             # Initialize chromadb client
-            client = chromadb.Client(
+            self.client = chromadb.Client(
                 Settings(
                     chroma_db_impl="duckdb+parquet",
                     persist_directory=self.db_config.chroma_db_fp,
                 )
             )
-            self.collection = client.create_collection(
+            self.collection = self.client.create_collection(
                 self.db_config.collection_name,
                 metadata={"hnsw:space": "cosine"},
                 embedding_function=embedding_functions.OpenAIEmbeddingFunction(
                     model_name=self.data_processing_config.embedding_model
                 ),
             )
+            test = 0
         except Exception as e:
             print(e)
 
@@ -72,8 +76,7 @@ class ChromaDatabaseHandler(DatabaseHandler, extra=Extra.allow):
         return result_texts, doc_search_res["metadatas"][0]
 
     def upsert(self, data: list[dict[str, Any]]) -> None:
-        collection = self.client.get_collection(self.db_config.collection_name)
         embeddings = [doc_data["values"] for doc_data in data]
         meta_data = [doc_data["metadata"] for doc_data in data]
         ids = [str(uuid.uuid4()) for idx in range(len(embeddings))]
-        collection.add(embeddings=embeddings, metadatas=meta_data, ids=ids)
+        self.collection.add(embeddings=embeddings, metadatas=meta_data, ids=ids)
