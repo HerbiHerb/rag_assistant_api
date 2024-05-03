@@ -195,20 +195,7 @@ def generate_database(database_handler: DatabaseHandler):
     """
     with open(os.environ["CONFIG_FP"], "r") as file:
         config_data = yaml.safe_load(file)
-    # database_handler.create_database()
-    client = chromadb.Client(
-        Settings(
-            chroma_db_impl="duckdb+parquet",
-            persist_directory=database_handler.db_config.chroma_db_fp,
-        )
-    )
-    collection = client.create_collection(
-        name=database_handler.db_config.collection_name,
-        metadata={"hnsw:space": "cosine"},
-        embedding_function=embedding_functions.OpenAIEmbeddingFunction(
-            model_name="text-embedding-ada-002"
-        ),
-    )
+    database_handler.create_database()
     embedding_model = create_embedding_model(
         llm_service=config_data["usage_settings"]["llm_service"],
         model=config_data["language_models"]["embedding_model"],
@@ -233,51 +220,13 @@ def generate_database(database_handler: DatabaseHandler):
                 )
             elif file.endswith(".pdf"):
                 file_path = os.path.join(subdir, file)
-                text = extract_text(file_path)
-                text_dict = [{"text": text}]
-                text_chunks = split_texts_into_chunks(
-                    text_dicts=text_dict, text_splitter=text_splitter
+                process_pdf_file(
+                    file_path=file_path,
+                    text_splitter=text_splitter,
+                    embedding_model=embedding_model,
+                    database_handler=database_handler,
+                    document_config=document_config,
                 )
-                curr_batch = []
-                for chunk_dict in text_chunks:
-                    text = chunk_dict["text"]
-                    meta_data = {"text": text}
-                    unique_id = str(uuid.uuid4())
-                    embedding = get_embedding(
-                        text=text, embedding_model=embedding_model
-                    )
-                    vector_data = {
-                        "id": unique_id,
-                        "values": embedding,
-                        "metadata": deepcopy(meta_data),
-                    }
-                    curr_batch.append(vector_data)
-
-                    if (
-                        len(curr_batch)
-                        == database_handler.data_processing_config.batch_size
-                    ):
-                        print("Batch-Hochladen")
-                        embeddings = [doc_data["values"] for doc_data in curr_batch]
-                        meta_data = [doc_data["metadata"] for doc_data in curr_batch]
-                        ids = [str(uuid.uuid4()) for idx in range(len(embeddings))]
-                        collection.add(
-                            embeddings=embeddings, metadatas=meta_data, ids=ids
-                        )
-                        curr_batch = []
-                if curr_batch:
-                    embeddings = [doc_data["values"] for doc_data in curr_batch]
-                    meta_data = [doc_data["metadata"] for doc_data in curr_batch]
-                    ids = [str(uuid.uuid4()) for idx in range(len(embeddings))]
-                    collection.add(embeddings=embeddings, metadatas=meta_data, ids=ids)
-
-                # process_pdf_file(
-                #     file_path=file_path,
-                #     text_splitter=text_splitter,
-                #     embedding_model=embedding_model,
-                #     database_handler=database_handler,
-                #     document_config=document_config,
-                # )
 
 
 def update_database(

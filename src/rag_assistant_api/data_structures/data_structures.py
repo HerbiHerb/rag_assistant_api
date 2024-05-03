@@ -133,8 +133,16 @@ class AgentData(BaseModel):
 
 class AgentAnswerData(BaseModel):
     query_msg_idx: int
-    final_answer: str = Field(default="")
-    function_responses: list[str] = Field(default=[])
+    final_answer: str = Field(
+        default="", description="The final answer of the assistant."
+    )
+    function_responses: list[str] = Field(
+        default=[],
+        description="All information of the function responses to the final answer.",
+    )
+    chat_messages: list[dict[str, str]] = Field(
+        default=[], description="Current chat messages of the conversation."
+    )
 
     def add_function_response(self, new_response: str) -> None:
         self.function_responses.append(new_response)

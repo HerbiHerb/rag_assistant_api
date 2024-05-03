@@ -94,7 +94,6 @@ class OpenAIFunctionsAgent(OpenAIAgent):
         # Check if the model wanted to call a function
         if tool_calls:
             while len(tool_calls) > 0:
-                print("TOOL_CALL")
                 chat_messages.append(curr_response_message)
                 self._add_function_call_information(
                     chat_messages=chat_messages,
@@ -123,6 +122,7 @@ class OpenAIFunctionsAgent(OpenAIAgent):
     ):
         while len(tool_calls) > 0:
             tool_call = tool_calls.pop(0)
+            print(f"TOOL_CALL: {tool_call.function.name}")
             function_name = tool_call.function.name
             function_to_call = self.available_functions[function_name]
             function_args = json.loads(tool_call.function.arguments)
@@ -158,4 +158,5 @@ class OpenAIFunctionsAgent(OpenAIAgent):
             max_token_number=get_max_token_number(model_name=self.model_name),
             encoding_model=tiktoken.get_encoding("cl100k_base"),
         )
-        return agent_answer, chat_messages
+        agent_answer.chat_messages = chat_messages
+        return agent_answer

@@ -12,7 +12,6 @@ from .utils.agent_utils import (
     cleanup_function_call_messages,
 )
 
-# from .agents.openai_agents.openai_functions_agent import OpenAIFunctionsAgent
 from .agents.agent_factory import AgentFactory
 from .data_structures.data_structures import (
     PineconeConfig,
@@ -21,8 +20,7 @@ from .data_structures.data_structures import (
     DocumentProcessingConfig,
     ConfigFileValidator,
 )
-from .vector_database.pinecone.pinecone_database_handler import PineconeDatabaseHandler
-from .vector_database.chroma_db.chroma_db_database_handler import ChromaDatabaseHandler
+from .vector_database.vector_db_factory import VectorDBFactory
 from .vector_database.vector_db_utils import (
     generate_database,
     update_database,
@@ -32,6 +30,7 @@ from .utils.data_processing_utils import (
     remove_meta_data_from_text,
     split_text_into_parts_and_chapters,
 )
+from .utils.file_loading import load_yaml_file
 
 
 @app.route("/", methods=["GET"])
@@ -123,13 +122,15 @@ def execute_rag():
                 400,
             )
     chat_messages = Conversation.get_chat_messages(conv_id=conv_id)
-    rag_model = AgentFactory.create_agent()
-    chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
-    agent_answer, chat_messages = rag_model.run(
-        query=query, chat_messages=chat_messages
+    rag_model = AgentFactory.create_agent(
+        config_data=load_yaml_file(yaml_file_fp=os.getenv("CONFIG_FP"))
     )
+    chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
+    agent_answer = rag_model.run(query=query, chat_messages=chat_messages)
     meta_data = rag_model.get_meta_data()
-    chat_messages = cleanup_function_call_messages(chat_messages=chat_messages)
+    chat_messages = cleanup_function_call_messages(
+        chat_messages=agent_answer.chat_messages
+    )
     chat_messages.append(
         {
             "role": "assistant",
@@ -137,6 +138,9 @@ def execute_rag():
         }
     )
     Conversation.update_chat_messages(conv_id=conv_id, chat_messages=chat_messages)
+    Conversation.save_meta_data(
+        conv_id=conv_id, msg_idx=len(chat_messages) - 1, meta_data=meta_data
+    )
     return jsonify({"answer": agent_answer.final_answer, "meta_data": meta_data})
 
 
@@ -200,16 +204,9 @@ def generate_vector_db():
     """
     with open(os.getenv("CONFIG_FP"), "r") as file:
         config_data = yaml.safe_load(file)
-    data_processing_config = DataProcessingConfig(**config_data["data_processing"])
-    # pinecone_config = PineconeConfig(**config_data["pinecone_db"])
-    chroma_db_config = ChromaDBConfig(**config_data["chroma_db"])
-    # database_handler = PineconeDatabaseHandler(
-    #     index=pinecone.Index(pinecone_config.index_name),
-    #     data_processing_config=data_processing_config,
-    #     pinecone_config=PineconeConfig(**config_data["pinecone_db"]),
-    # )
-    database_handler = ChromaDatabaseHandler(
-        chroma_db_config=chroma_db_config, data_processing_config=data_processing_config
+    database_handler = VectorDBFactory.create_vector_db_instance(
+        vector_db_cls=config_data["usage_settings"]["vector_db"],
+        config_data=config_data,
     )
     generate_database(database_handler=database_handler)
     return f"Database generated"
@@ -219,12 +216,9 @@ def generate_vector_db():
 def upload_document():
     with open(os.getenv("CONFIG_FP"), "r") as file:
         config_data = yaml.safe_load(file)
-    data_processing_config = DataProcessingConfig(**config_data["data_processing"])
-    pinecone_config = PineconeConfig(**config_data["pinecone_db"])
-    database_handler = PineconeDatabaseHandler(
-        index=pinecone.Index(pinecone_config.index_name),
-        data_processing_config=data_processing_config,
-        pinecone_config=pinecone_config,
+    database_handler = VectorDBFactory.create_vector_db_instance(
+        vector_db_cls=config_data["usage_settings"]["vector_db"],
+        config_data=config_data,
     )
     uploaded_text = request.data.decode("utf-8")
     document_config = DocumentProcessingConfig(**config_data["document_processing"])
