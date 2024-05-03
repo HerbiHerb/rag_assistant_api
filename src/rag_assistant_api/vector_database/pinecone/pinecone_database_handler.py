@@ -1,13 +1,23 @@
 from typing import Any, Iterable
+from pydantic import BaseModel
 from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
 import pinecone
 from ...base_classes.database_handler import DatabaseHandler
-import pinecone
 
 
 class PineconeDatabaseHandler(DatabaseHandler):
     index: pinecone.Index
-    pinecone_config: PineconeConfig
+    db_config: PineconeConfig
+
+    class Factory:
+        def create(self, db_config_Data: dict, data_processing_config: BaseModel):
+            pinecone_config = PineconeConfig(**db_config_Data["pinecone_db"])
+            database_handler = PineconeDatabaseHandler(
+                index=pinecone.Index(pinecone_config.index_name),
+                data_processing_config=data_processing_config,
+                db_config=pinecone_config,
+            )
+            return database_handler
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -15,17 +25,17 @@ class PineconeDatabaseHandler(DatabaseHandler):
     def create_database(self) -> None:
         try:
             pinecone.create_index(
-                name=self.pinecone_config.index_name,
-                dimension=self.pinecone_config.dimension,
-                metric=self.pinecone_config.metric,
+                name=self.db_config.index_name,
+                dimension=self.db_config.dimension,
+                metric=self.db_config.metric,
             )
-            self.index = pinecone.Index(index_name=self.pinecone_config.index_name)
+            self.index = pinecone.Index(index_name=self.db_config.index_name)
         except Exception as e:
             print(e)
 
     def delete_database(self) -> None:
         try:
-            pinecone.delete_index(self.pinecone_config.index_name)
+            pinecone.delete_index(self.db_config.index_name)
         except Exception as e:
             print("No index available for deletion")
 

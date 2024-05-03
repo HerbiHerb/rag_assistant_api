@@ -7,4 +7,6 @@
 
 {"query":"Was steht im Buch Schnelles Denken langsames Denken zum Thema Entscheidungsfindung?", "user_id":1}
 
-{"query":"Ich möchte relevante mthematische Sätze aus der Stochastik lernen. Kannst du mir ein paar zeigen?", "user_id":1}
+curl --noproxy "*" -d '{"query":"Was steht im Buch Schnelles Denken langsames Denken zum Thema Entscheidungsfindung?", "user_id":1}' -H "Content-Type: application/json" -X POST http://localhost:5000/execute_rag
+
+curl --noproxy "*" http://127.0.0.1:5000/generate_vector_db

@@ -1,12 +1,11 @@
-from typing import Any
-import re
-from copy import deepcopy
-from langchain_openai import OpenAIEmbeddings
-from bs4 import BeautifulSoup
-from langchain.text_splitter import TokenTextSplitter
-import json
 import ast
+import re
+from typing import Any
+from copy import deepcopy
+import json
+from langchain.text_splitter import TokenTextSplitter
 from ..data_structures.data_structures import DocumentProcessingConfig
+from ..base_classes.embedding_base import EmbeddingModel
 
 
 def list_str_conversion(list_str: str) -> Any:
@@ -32,9 +31,9 @@ def check_for_ignore_prefix(file_name: str, ignore_prefix: str):
     return False
 
 
-def get_embedding(text, embedding_model: OpenAIEmbeddings):
+def get_embedding(text, embedding_model: EmbeddingModel):
     text = text.replace("\n", " ")
-    return embedding_model.embed_query(text)
+    return embedding_model.generate_embedding(text)
 
 
 def split_texts_into_parts(texts: list[str], part_seperator: str):

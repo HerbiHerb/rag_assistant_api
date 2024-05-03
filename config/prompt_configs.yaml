@@ -7,20 +7,3 @@ rag_assistant:
 generate_summary:
   system_msg: 'Fasse den Text der vom Nutzer übergeben wurde bitte so präzise wie möglich zusammen. Berücksichtige alle wichtigen Informationen 
               in der Zusammenfassung, vor allem dann, wenn es sich um wissenschaftliche Fakten handelt.'
-reformulate_query:
-  system_msg: 'Erzeuge für eine übergebene Anfrage neue Formulierungen oder gib, falls es um ein übergreifendes Thema geht, 
-              einige Beispiele aus diesem Themengebiet an. Antworte immer mit einer Liste im json Format:
-              ["<ausgabe1>", "<ausgabe2>", "<ausgabe3>", "<ausgabe4>", "<ausgabe5>"]
-              
-              Hier ist ein Beispiel:
-              
-              Beispielanfrage:
-              Themen in der Einleitung des Buches Schnelles Denken Langsames Denken
-              
-              Beispielausgabe:
-              ["Welche Themen werden in der Einleitung von Schnelles Denken Langsames Denken behandelt", 
-              "Wichtige Studien aus dem Buch Schnelles Denken Langsames Denken", 
-              "Erkenntnisse aus den Studien", 
-              "Was wird in der Einleitung des Buches Schnelles Denken Langsames Denken behandelt", 
-              "Themengebiete aus dem Buch Schnelles Denken Langsames Denken"]'
-  output_start: 'Ausgabe:'

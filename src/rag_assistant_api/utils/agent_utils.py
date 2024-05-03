@@ -1,7 +1,9 @@
+import os
 from typing import List, Dict
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 import tiktoken
 from ..agents.exceptions import ModelNotIncluded
+from ..utils.file_loading import load_yaml_file
 
 
 def get_max_token_number(model_name: str) -> int:
@@ -64,6 +66,7 @@ def cleanup_function_call_messages(chat_messages: list[dict[str, str]]):
     converted_chat_messages = []
     for chat_message in chat_messages:
         if isinstance(chat_message, ChatCompletionMessage):
+            config_data = load_yaml_file(yaml_file_fp=os.getenv("CONFIG_FP"))
             role = chat_message.role
             for tool_call in chat_message.tool_calls:
                 function_name = tool_call.function.name
@@ -71,7 +74,8 @@ def cleanup_function_call_messages(chat_messages: list[dict[str, str]]):
                 converted_chat_messages.append(
                     {
                         "role": role,
-                        "content": f"$FUNCTION_CALL\n\nPreviously made function call\n\nFunction name: {function_name}\narguments: {arguments}",
+                        "content": config_data["usage_settings"]["function_call_prefix"]
+                        + f"\n\nPreviously made function call\n\nFunction name: {function_name}\narguments: {arguments}",
                     }
                 )
         elif chat_message["role"] == "tool":

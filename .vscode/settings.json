@@ -1,0 +1,5 @@
+{
+    "python.pythonPath": "/home/i02581/.cache/pypoetry/virtualenvs/rag-assistant-api-C6cRmYz--py3.11",
+    "python.formatting.provider": "black",
+    "keyboard.dispatch": "keyCode"
+}

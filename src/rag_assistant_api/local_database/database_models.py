@@ -56,7 +56,19 @@ class Conversation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     chat_messages = db.Column(db.Text)
+    chat_messages_meta_data = db.Column(db.Text)
     timestamp_last_message = db.Column(db.DateTime, nullable=False)
+
+    def save_meta_data(conv_id: int, msg_idx: int, meta_data: dict):
+        try:
+            conversation = Conversation.query.get(conv_id)
+            curr_meta_data = conversation.chat_messages_meta_data
+            curr_meta_data = json.loads(curr_meta_data) if curr_meta_data else {}
+            curr_meta_data.update({msg_idx: meta_data})
+            conversation.chat_messages_meta_data = json.dumps(curr_meta_data)
+            db.session.commit()
+        except Exception as e:
+            print(e)
 
     def generate_new_conversation(user_id: int):
         try:

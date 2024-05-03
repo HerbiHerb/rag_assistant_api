@@ -1,10 +1,15 @@
+usage_settings:
+  agent_type: OpenAIFunctionsAgent
+  agent_prompt_config: rag_assistant
+  vector_db: PineconeDatabaseHandler
+  llm_service: openai
+  function_call_prefix: $FUNCTION_CALL
 language_models:  
-  service: "OpenAI"
-  #model_name: "gpt-3.5-turbo-0125"
-  model_name: "gpt-4-turbo"
+  model_name: "gpt-3.5-turbo-0125"
+  #model_name: "gpt-4-turbo"
   embedding_model: text-embedding-ada-002
-  deployment_name: "gpt-35-turbo"
-  temp: 0.0
+  # deployment_name: "gpt-35-turbo"
+  temp": 0.0
 document_processing:
   meta_data_pattern: '(?s)\$META_DATA(.*)\$END_META_DATA'
   part_seperator: "$PART$"
@@ -26,3 +31,9 @@ pinecone_db:
   top_k: 5
   metric: "cosine"
   config_credentials: "config/credentials" 
+chroma_db:
+  collection_name: rag_vector_db
+  chroma_db_fp: "src/data/chroma_db_instantiation"
+  dimension: 1536
+  top_k: 5
+  metric: "cosine"
