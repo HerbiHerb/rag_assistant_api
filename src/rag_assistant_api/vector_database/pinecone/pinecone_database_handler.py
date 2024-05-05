@@ -1,19 +1,21 @@
+import os
 from typing import Any, Iterable
 from pydantic import BaseModel
 from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
 import pinecone
+from pinecone import Pinecone
 from ...base_classes.database_handler import DatabaseHandler
 
 
 class PineconeDatabaseHandler(DatabaseHandler):
-    index: pinecone.Index
     db_config: PineconeConfig
 
     class Factory:
         def create(self, db_config_Data: dict, data_processing_config: BaseModel):
-            pinecone_config = PineconeConfig(**db_config_Data["pinecone_db"])
+            pinecone_config = PineconeConfig(
+                api_key=os.getenv("PINECONE_API_KEY"), **db_config_Data["pinecone_db"]
+            )
             database_handler = PineconeDatabaseHandler(
-                index=pinecone.Index(pinecone_config.index_name),
                 data_processing_config=data_processing_config,
                 db_config=pinecone_config,
             )
@@ -21,6 +23,8 @@ class PineconeDatabaseHandler(DatabaseHandler):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.pinecone_instance = Pinecone(api_key=self.db_config.api_key)
+        self.index = self.pinecone_instance.Index(self.db_config.index_name)
 
     def create_database(self) -> None:
         try:

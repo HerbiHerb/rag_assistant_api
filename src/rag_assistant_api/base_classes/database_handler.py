@@ -10,7 +10,7 @@ from ..data_structures.data_structures import (
 )
 
 
-class DatabaseHandler(BaseModel, arbitrary_types_allowed=True):
+class DatabaseHandler(BaseModel, arbitrary_types_allowed=True, extra=Extra.allow):
     data_processing_config: DataProcessingConfig
 
     @abstractmethod

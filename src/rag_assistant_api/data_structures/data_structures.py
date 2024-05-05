@@ -34,6 +34,7 @@ class DataProcessingConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
 
 class PineconeConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
     index_name: str = Field(description="Name of index used to save the embeddings.")
+    api_key: str = Field(description="Field whitch saves the api key.")
     dimension: StrictInt = Field(default=1536, description="Vector deimension.")
     metric: Literal["cosine", "dotproduct", "euclidean"] = Field(
         default="cosine", description="Metric to be used to find similar vectors."

@@ -262,7 +262,9 @@ def main():
                 **config_data["document_processing"]
             ),
             chroma_db_config=ChromaDBConfig(**config_data["chroma_db"]),
-            pinecone_db_config=PineconeConfig(**config_data["pinecone_db"]),
+            pinecone_db_config=PineconeConfig(
+                api_key=os.getenv("PINECONE_API_KEY"), **config_data["pinecone_db"]
+            ),
             prompt_configs_fp=os.getenv("PROMPT_CONFIGS_FP"),
         )
     except AssertionError as e:
@@ -276,10 +278,10 @@ def main():
 
     if config_data["usage_settings"]["llm_service"] == "openai":
         openai.api_key = os.getenv("OPENAI_API_KEY")
-        pinecone.init(
-            api_key=os.getenv("PINECONE_API_KEY"),
-            environment=os.getenv("PINECONE_ENVIRONMENT"),
-        )
+        # pinecone.init(
+        #     api_key=os.getenv("PINECONE_API_KEY"),
+        #     environment=os.getenv("PINECONE_ENVIRONMENT"),
+        # )
     app.run(host="0.0.0.0", port=5000, debug=True)
 
 
