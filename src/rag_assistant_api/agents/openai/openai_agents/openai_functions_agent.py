@@ -7,7 +7,6 @@ import pinecone
 import yaml
 from copy import deepcopy
 import tiktoken
-from rag_assistant_api.base_classes.database_handler import DatabaseHandler
 from ..openai_functions.function_definitions import (
     PineconeDocumentSearch,
     PineconeDocumentFilterSearch,
@@ -98,7 +97,6 @@ class OpenAIFunctionsAgent(OpenAIAgent):
                 self._add_function_call_information(
                     chat_messages=chat_messages,
                     tool_calls=tool_calls,
-                    agent_answer_data=agent_answer_data,
                 )
 
                 second_response = self.openai_completion_call(
@@ -118,7 +116,6 @@ class OpenAIFunctionsAgent(OpenAIAgent):
         self,
         chat_messages: list[dict[str, str]],
         tool_calls: list[Any],
-        agent_answer_data: AgentAnswerData,
     ):
         while len(tool_calls) > 0:
             tool_call = tool_calls.pop(0)
@@ -128,7 +125,6 @@ class OpenAIFunctionsAgent(OpenAIAgent):
             function_args = json.loads(tool_call.function.arguments)
             function_response = function_to_call(**function_args)
             function_response += "\n\nIf the responses of the previously made tool calls are enough to answer the question, return the final answer. If the responses of the tool calls contain not enough information, then call one appropriate function."
-            agent_answer_data.add_function_response(function_response)
             chat_messages.append(
                 {
                     "tool_call_id": tool_call.id,
@@ -159,4 +155,5 @@ class OpenAIFunctionsAgent(OpenAIAgent):
             encoding_model=tiktoken.get_encoding("cl100k_base"),
         )
         agent_answer.chat_messages = chat_messages
+        agent_answer.function_responses = self.get_meta_data()
         return agent_answer

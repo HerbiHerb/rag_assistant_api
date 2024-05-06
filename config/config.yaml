@@ -1,5 +1,5 @@
 usage_settings:
-  agent_type: OpenAIFunctionsAgent
+  agent_type: LangchainOpenAIAgent # OpenAIFunctionsAgent #LangchainOpenAIAgent
   agent_prompt_config: rag_assistant
   vector_db: PineconeDatabaseHandler
   llm_service: openai

@@ -1,6 +1,6 @@
 import pathlib
 import os
-from typing import Literal, Optional
+from typing import Literal, Optional, Any
 from pydantic import BaseModel, Extra, Field, validator, root_validator
 from pydantic.networks import import_email_validator
 from pydantic.types import StrictInt
@@ -137,7 +137,7 @@ class AgentAnswerData(BaseModel):
     final_answer: str = Field(
         default="", description="The final answer of the assistant."
     )
-    function_responses: list[str] = Field(
+    function_responses: list[Any] = Field(
         default=[],
         description="All information of the function responses to the final answer.",
     )
