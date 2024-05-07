@@ -34,6 +34,7 @@ class DataProcessingConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
 
 class PineconeConfig(BaseModel, extra=Extra.forbid, allow_mutation=False):
     index_name: str = Field(description="Name of index used to save the embeddings.")
+
     api_key: str = Field(description="Field whitch saves the api key.")
     dimension: StrictInt = Field(default=1536, description="Vector deimension.")
     metric: Literal["cosine", "dotproduct", "euclidean"] = Field(
@@ -120,18 +121,6 @@ class ConfigFileValidator(BaseModel):
         return values
 
 
-class AgentData(BaseModel):
-    openai_key: str
-    max_token_number: int
-    embedding_model_name: str
-    embedding_token_counter: str
-    pinecone_key: str
-    pinecone_environment: str
-    pinecone_index_name: str
-    chatmessages_csv_path: str
-    listening_sound_path: str
-
-
 class AgentAnswerData(BaseModel):
     query_msg_idx: int
     final_answer: str = Field(
@@ -147,3 +136,8 @@ class AgentAnswerData(BaseModel):
 
     def add_function_response(self, new_response: str) -> None:
         self.function_responses.append(new_response)
+
+
+class VectorDBRetrievalData(BaseModel):
+    chunk_texts: list[str]
+    meta_data: list[dict]

@@ -3,7 +3,6 @@ from openai import OpenAI
 from ....base_classes.database_handler import DatabaseHandler
 from ....base_classes.embedding_base import EmbeddingModel
 from ....utils.data_processing_utils import get_embedding
-from ....llm_functionalities.openai_task_functions import reformulate_query
 
 
 class PineconeDocumentSearch(BaseModel, extra=Extra.allow):
@@ -23,13 +22,13 @@ class PineconeDocumentSearch(BaseModel, extra=Extra.allow):
         query_embeddings = get_embedding(
             search_string, embedding_model=self.embedding_model
         )
-        result_texts, result_files = self.database_handler.query(
+        vecdb_retr_data = self.database_handler.query(
             embedding=query_embeddings,
             filter=self.filter,
             top_k=self.database_handler.db_config.top_k,
         )
-        result_text = "\n\n".join(result_texts)
-        self.meta_data.extend(result_files)
+        result_text = "\n\n".join(vecdb_retr_data.chunk_texts)
+        self.meta_data.extend(vecdb_retr_data.meta_data)
         return result_text
 
 
@@ -70,13 +69,13 @@ class PineconeDocumentFilterSearch(BaseModel, extra=Extra.allow):
         query_embeddings = get_embedding(
             search_string, embedding_model=self.embedding_model
         )
-        result_texts, result_files = self.database_handler.query(
+        vecdb_retr_data = self.database_handler.query(
             embedding=query_embeddings,
             filter=self.filter_dict,
             top_k=self.database_handler.db_config.top_k,
         )
-        result_text = "\n\n".join(result_texts)
-        self.meta_data.extend(result_files)
+        result_text = "\n\n".join(vecdb_retr_data.chunk_texts)
+        self.meta_data.extend(vecdb_retr_data.meta_data)
         return result_text
 
 
@@ -123,13 +122,13 @@ class DocumentAnalyzer(BaseModel, extra=Extra.allow):
         query_embeddings = get_embedding(
             search_string, embedding_model=self.embedding_model
         )
-        result_texts, result_meta_data = self.database_handler.query(
+        vecdb_retr_data = self.database_handler.query(
             embedding=query_embeddings,
             filter=self.filter,
             top_k=self.database_handler.db_config.top_k,
         )
-        result_text = "\n\n".join(result_texts)
-        self.meta_data.extend(result_meta_data)
+        result_text = "\n\n".join(vecdb_retr_data.chunk_texts)
+        self.meta_data.extend(vecdb_retr_data.meta_data)
         return result_text
 
 
@@ -145,55 +144,6 @@ DOCUMENT_ANALYZER = {
                 "search_string": {
                     "type": "string",
                     "description": "Search string to execute a semantic search on a vector database to extract information from a document.",
-                },
-            },
-            "required": ["search_string"],
-        },
-    },
-}
-
-
-class MathInformationLoader(BaseModel, extra=Extra.allow):
-    name = "math_information_loader"
-    description = "Useful if you need to find the right document based on the user query and extract information from the whole document. Not only snippets from it. Use this tool if you think you need to consider the whole document to answer th user query or if the user asks particularly for it."
-    embedding_model: EmbeddingModel
-    database_handler: DatabaseHandler
-    filter: dict = Field(
-        default=None, description="Filter dictionary for the vector search"
-    )
-    meta_data: list[dict[str, str]] = Field(
-        default=[], description="Field to save meta data of the document search"
-    )
-
-    def __call__(self, search_string: str) -> str:
-        """Use the tool"""
-        # TODO: iterate over reformulations and extract all relevant texts from the reformulations
-        reformulations = reformulate_query(query=search_string)
-        query_embeddings = get_embedding(
-            search_string, embedding_model=self.embedding_model
-        )
-        result_texts, result_files = self.database_handler.query(
-            embedding=query_embeddings,
-            filter=self.filter,
-            top_k=self.database_handler.pinecone_config.top_k,
-        )
-        result_text = "\n\n".join(result_texts)
-        self.meta_data.extend(result_files)
-        return result_text
-
-
-MATH_INFORMATION_LOADER = {
-    "type": "function",
-    "function": {
-        "name": "math_information_loader",
-        "description": """Useful if you need to answer a theoretical mathematical question. 
-        This tool searches for relevant methematical information from study scripts and math books written in latex.""",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "search_string": {
-                    "type": "string",
-                    "description": "Search string to execute a semantic search on a vector database to extract information from math study documents.",
                 },
             },
             "required": ["search_string"],

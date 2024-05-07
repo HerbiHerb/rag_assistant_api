@@ -21,7 +21,7 @@ from ...exceptions import TokenLengthExceedsMaxTokenNumber
 from ....utils.agent_utils import count_tokens_of_conversation, get_max_token_number
 from ....vector_database.vector_db_factory import VectorDBFactory
 from ....llm_functionalities.embedding_models.embedding_model_factory import (
-    create_embedding_model,
+    EmbeddingModelFactory,
 )
 from ....utils.file_loading import load_yaml_file
 
@@ -38,9 +38,11 @@ class OpenAIFunctionsAgent(OpenAIAgent):
                 vector_db_cls=config_data["usage_settings"]["vector_db"],
                 config_data=config_data,
             )
-            embedding_model = create_embedding_model(
-                llm_service=config_data["usage_settings"]["llm_service"],
-                model=config_data["language_models"]["embedding_model"],
+            embedding_model = EmbeddingModelFactory.create_embedding_model(
+                embedding_model_cls=config_data["usage_settings"][
+                    "embeddding_model_cls"
+                ],
+                embedding_model_name=config_data["language_models"]["embedding_model"],
             )
             available_functions = {
                 "document_search": PineconeDocumentSearch(

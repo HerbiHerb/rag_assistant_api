@@ -12,7 +12,7 @@ from langchain_openai import ChatOpenAI
 from ....base_classes.agent_base import LangchainAgent
 from ....vector_database.vector_db_factory import VectorDBFactory
 from ....llm_functionalities.embedding_models.embedding_model_factory import (
-    create_embedding_model,
+    EmbeddingModelFactory,
 )
 from ....utils.file_loading import load_yaml_file
 from ..langchain_tools.tools import DocumentSearch
@@ -31,10 +31,16 @@ class LangchainOpenAIAgent(LangchainAgent):
                 vector_db_cls=config_data["usage_settings"]["vector_db"],
                 config_data=config_data,
             )
-            embedding_model = create_embedding_model(
-                llm_service=config_data["usage_settings"]["llm_service"],
-                model=config_data["language_models"]["embedding_model"],
+            embedding_model = EmbeddingModelFactory.create_embedding_model(
+                embedding_model_cls=config_data["usage_settings"][
+                    "embeddding_model_cls"
+                ],
+                embedding_model_name=config_data["language_models"]["embedding_model"],
             )
+            # embedding_model = create_embedding_model(
+            #     llm_service=config_data["usage_settings"]["llm_service"],
+            #     model=config_data["language_models"]["embedding_model"],
+            # )
             functions = [
                 DocumentSearch(
                     embedding_model=embedding_model,
@@ -99,11 +105,13 @@ class LangchainOpenAIAgent(LangchainAgent):
         return combined_response_data
 
     def run(self, query: str, chat_messages: list[dict[str, str]]) -> AgentAnswerData:
-        chat_messages = self._convert_chat_messages(chat_messages=chat_messages)
+        converted_chat_messages = self._convert_chat_messages(
+            chat_messages=chat_messages
+        )
         response = self.model.invoke(
             {
                 "input": query,
-                "chat_history": chat_messages,
+                "chat_history": converted_chat_messages,
             }
         )
         chat_messages.append({"role": "user", "content": query})

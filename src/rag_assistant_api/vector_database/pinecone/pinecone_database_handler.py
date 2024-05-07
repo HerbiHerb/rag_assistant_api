@@ -1,13 +1,15 @@
-import os
 from typing import Any, Iterable
 from pydantic import BaseModel
+import os
 from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
 import pinecone
 from pinecone import Pinecone
 from ...base_classes.database_handler import DatabaseHandler
+from ...data_structures.data_structures import VectorDBRetrievalData
 
 
 class PineconeDatabaseHandler(DatabaseHandler):
+    # index: pinecone.Index
     db_config: PineconeConfig
 
     class Factory:
@@ -45,7 +47,7 @@ class PineconeDatabaseHandler(DatabaseHandler):
 
     def query(
         self, embedding: Iterable, top_k: int, filter: dict = None
-    ) -> tuple[list[str]]:
+    ) -> VectorDBRetrievalData:
         query_results = self.index.query(
             vector=embedding,
             filter=filter,
@@ -58,7 +60,10 @@ class PineconeDatabaseHandler(DatabaseHandler):
         result_meta = [
             search_res["metadata"] for search_res in query_results["matches"]
         ]
-        return result_texts, result_meta
+        vecdb_retr_data = VectorDBRetrievalData(
+            chunk_texts=result_texts, meta_data=result_meta
+        )
+        return vecdb_retr_data
 
     def upsert(self, data: list[dict[str, Any]]) -> None:
         self.index.upsert(vectors=data)

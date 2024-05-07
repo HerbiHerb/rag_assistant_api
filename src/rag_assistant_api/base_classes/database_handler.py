@@ -1,13 +1,11 @@
 from abc import abstractmethod
-from pydantic import BaseModel, ConfigDict, Extra
-from typing import Any, Iterable, List, Tuple, Type
-import pinecone
+from pydantic import BaseModel, Extra
+from typing import Any, Iterable, List, Tuple
 from ..data_structures.data_structures import DataProcessingConfig
 from ..data_structures.data_structures import (
-    PineconeConfig,
     DataProcessingConfig,
-    ChromaDBConfig,
 )
+from ..data_structures.data_structures import VectorDBRetrievalData
 
 
 class DatabaseHandler(BaseModel, arbitrary_types_allowed=True, extra=Extra.allow):
@@ -22,7 +20,7 @@ class DatabaseHandler(BaseModel, arbitrary_types_allowed=True, extra=Extra.allow
         pass
 
     @abstractmethod
-    def query(embedding: Iterable, top_k: int) -> Tuple[List[str]]:
+    def query(embedding: Iterable, top_k: int) -> VectorDBRetrievalData:
         pass
 
     @abstractmethod

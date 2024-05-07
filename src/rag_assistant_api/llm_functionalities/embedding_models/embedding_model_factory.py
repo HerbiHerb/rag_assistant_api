@@ -4,8 +4,18 @@ from ...llm_functionalities.embedding_models.openai_embeddings import (
 )
 
 
-def create_embedding_model(llm_service: str, model: str):
-    if llm_service == "openai":
-        return OpenAIEmbeddingModel(embedding_model=OpenAIEmbeddings(model=model))
-    else:
-        raise ValueError(llm_service)
+class EmbeddingModelFactory:
+    factories = {}
+
+    @staticmethod
+    def create_embedding_model(
+        embedding_model_cls: str,
+        embedding_model_name: str,
+    ):
+        if not embedding_model_cls in EmbeddingModelFactory.factories:
+            EmbeddingModelFactory.factories[embedding_model_cls] = eval(
+                embedding_model_cls + ".Factory()"
+            )
+        return EmbeddingModelFactory.factories[embedding_model_cls].create(
+            embedding_model_name
+        )
