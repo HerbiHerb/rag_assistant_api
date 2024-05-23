@@ -1,7 +1,8 @@
 usage_settings:
-  agent_type: OpenAIFunctionsAgent
+  agent_type: OpenAIFunctionsAgent # OpenAIFunctionsAgent #LangchainOpenAIAgent
   agent_prompt_config: rag_assistant
   vector_db: PineconeDatabaseHandler
+  embeddding_model_cls: OpenAIEmbeddingModel
   llm_service: openai
   function_call_prefix: $FUNCTION_CALL
 language_models:  

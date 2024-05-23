@@ -127,7 +127,6 @@ def execute_rag():
     )
     chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
     agent_answer = rag_model.run(query=query, chat_messages=chat_messages)
-    meta_data = rag_model.get_meta_data()
     chat_messages = cleanup_function_call_messages(
         chat_messages=agent_answer.chat_messages
     )
@@ -139,9 +138,16 @@ def execute_rag():
     )
     Conversation.update_chat_messages(conv_id=conv_id, chat_messages=chat_messages)
     Conversation.save_meta_data(
-        conv_id=conv_id, msg_idx=len(chat_messages) - 1, meta_data=meta_data
+        conv_id=conv_id,
+        msg_idx=len(chat_messages) - 1,
+        meta_data=agent_answer.function_responses,
     )
-    return jsonify({"answer": agent_answer.final_answer, "meta_data": meta_data})
+    return jsonify(
+        {
+            "answer": agent_answer.final_answer,
+            "meta_data": agent_answer.function_responses,
+        }
+    )
 
 
 @app.route("/get_latest_conv_id", methods=["POST"])
@@ -262,7 +268,9 @@ def main():
                 **config_data["document_processing"]
             ),
             chroma_db_config=ChromaDBConfig(**config_data["chroma_db"]),
-            pinecone_db_config=PineconeConfig(**config_data["pinecone_db"]),
+            pinecone_db_config=PineconeConfig(
+                api_key=os.getenv("PINECONE_API_KEY"), **config_data["pinecone_db"]
+            ),
             prompt_configs_fp=os.getenv("PROMPT_CONFIGS_FP"),
         )
     except AssertionError as e:
@@ -276,10 +284,6 @@ def main():
 
     if config_data["usage_settings"]["llm_service"] == "openai":
         openai.api_key = os.getenv("OPENAI_API_KEY")
-        pinecone.init(
-            api_key=os.getenv("PINECONE_API_KEY"),
-            environment=os.getenv("PINECONE_ENVIRONMENT"),
-        )
     app.run(host="0.0.0.0", port=5000, debug=True)
 
 

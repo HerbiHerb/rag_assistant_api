@@ -5,8 +5,9 @@ import uuid
 from chromadb.utils import embedding_functions
 from chromadb.config import Settings
 from pydantic.main import BaseModel
-from ...data_structures.data_structures import ChromaDBConfig, DataProcessingConfig
+from ...data_structures.data_structures import ChromaDBConfig
 from ...base_classes.database_handler import DatabaseHandler
+from ...data_structures.data_structures import VectorDBRetrievalData
 
 
 class ChromaDatabaseHandler(DatabaseHandler, extra=Extra.allow):
@@ -66,14 +67,17 @@ class ChromaDatabaseHandler(DatabaseHandler, extra=Extra.allow):
 
     def query(
         self, embedding: Iterable, top_k: int, filter: dict = None
-    ) -> tuple[list[str]]:
+    ) -> VectorDBRetrievalData:
         doc_search_res = self.collection.query(
             query_embeddings=embedding, n_results=top_k
         )
         result_texts = [
             search_res["text"] for search_res in doc_search_res["metadatas"][0]
         ]
-        return result_texts, doc_search_res["metadatas"][0]
+        vecdb_retr_data = VectorDBRetrievalData(
+            chunk_texts=result_texts, meta_data=doc_search_res["metadatas"][0]
+        )
+        return vecdb_retr_data
 
     def upsert(self, data: list[dict[str, Any]]) -> None:
         embeddings = [doc_data["values"] for doc_data in data]

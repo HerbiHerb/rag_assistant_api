@@ -47,7 +47,7 @@ def test_openai_agent_with_chat_messages():
     chat_messages = [
         {
             "role": "system",
-            "content": "Du bist ein Assistent, der einem Nutzer fragen beantwortet.",
+            "content": "Du bist ein Assistent, der dem Nutzer Fragen beantwortet.",
         }
     ]
     response = rag_model.run(query=query, chat_messages=chat_messages)

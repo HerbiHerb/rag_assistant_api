@@ -1,19 +1,23 @@
 from typing import Any, Iterable
 from pydantic import BaseModel
+import os
 from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
 import pinecone
+from pinecone import Pinecone
 from ...base_classes.database_handler import DatabaseHandler
+from ...data_structures.data_structures import VectorDBRetrievalData
 
 
 class PineconeDatabaseHandler(DatabaseHandler):
-    index: pinecone.Index
+    # index: pinecone.Index
     db_config: PineconeConfig
 
     class Factory:
         def create(self, db_config_Data: dict, data_processing_config: BaseModel):
-            pinecone_config = PineconeConfig(**db_config_Data["pinecone_db"])
+            pinecone_config = PineconeConfig(
+                api_key=os.getenv("PINECONE_API_KEY"), **db_config_Data["pinecone_db"]
+            )
             database_handler = PineconeDatabaseHandler(
-                index=pinecone.Index(pinecone_config.index_name),
                 data_processing_config=data_processing_config,
                 db_config=pinecone_config,
             )
@@ -21,6 +25,8 @@ class PineconeDatabaseHandler(DatabaseHandler):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.pinecone_instance = Pinecone(api_key=self.db_config.api_key)
+        self.index = self.pinecone_instance.Index(self.db_config.index_name)
 
     def create_database(self) -> None:
         try:
@@ -41,7 +47,7 @@ class PineconeDatabaseHandler(DatabaseHandler):
 
     def query(
         self, embedding: Iterable, top_k: int, filter: dict = None
-    ) -> tuple[list[str]]:
+    ) -> VectorDBRetrievalData:
         query_results = self.index.query(
             vector=embedding,
             filter=filter,
@@ -54,7 +60,10 @@ class PineconeDatabaseHandler(DatabaseHandler):
         result_meta = [
             search_res["metadata"] for search_res in query_results["matches"]
         ]
-        return result_texts, result_meta
+        vecdb_retr_data = VectorDBRetrievalData(
+            chunk_texts=result_texts, meta_data=result_meta
+        )
+        return vecdb_retr_data
 
     def upsert(self, data: list[dict[str, Any]]) -> None:
         self.index.upsert(vectors=data)

@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from pydantic import BaseModel, Field
 from openai import OpenAI
 from openai._types import NOT_GIVEN
-from langchain.chains.llm import LLMChain
+from langchain_core.language_models.base import BaseLanguageModel
+from langchain.agents import AgentExecutor
 
 
 class AgentBase(ABC, BaseModel):
@@ -19,7 +20,8 @@ class AgentBase(ABC, BaseModel):
 
 
 class LangchainAgent(AgentBase):
-    model_name: str
+    model: AgentExecutor
+    initial_system_msg: str
 
 
 class OpenAIAgent(AgentBase):

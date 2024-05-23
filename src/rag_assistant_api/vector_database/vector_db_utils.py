@@ -27,7 +27,7 @@ from ..utils.data_processing_utils import (
 )
 from ..base_classes.database_handler import DatabaseHandler
 from ..llm_functionalities.embedding_models.embedding_model_factory import (
-    create_embedding_model,
+    EmbeddingModelFactory,
 )
 
 
@@ -196,9 +196,9 @@ def generate_database(database_handler: DatabaseHandler):
     with open(os.environ["CONFIG_FP"], "r") as file:
         config_data = yaml.safe_load(file)
     database_handler.create_database()
-    embedding_model = create_embedding_model(
-        llm_service=config_data["usage_settings"]["llm_service"],
-        model=config_data["language_models"]["embedding_model"],
+    embedding_model = EmbeddingModelFactory.create_embedding_model(
+        embedding_model_cls=config_data["usage_settings"]["embeddding_model_cls"],
+        embedding_model_name=config_data["language_models"]["embedding_model"],
     )
     text_splitter = TokenTextSplitter(
         chunk_size=database_handler.data_processing_config.chunk_size,
