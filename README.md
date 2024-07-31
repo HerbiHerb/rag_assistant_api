@@ -165,17 +165,26 @@ To implement new functionalities into the api you first need a python environmen
 
     The .env file contains all necessary environment variables. The file should contain the following variables
 
+
     Variables to define the config file paths:
+
     CONFIG_FP="config/config.yaml"
+
     PROMPT_CONFIGS_FP = "config/prompt_configs.yaml"
 
+
     Variables for the openai or azure openai keys:
+
     OPENAI_API_KEY="your api key"
+
     OPENAI_API_TYPE = azure or openai
+
     OPENAI_API_VERSION = 2024-05-01-preview
+
     AZURE_OPENAI_ENDPOINT = "The azure openai endpoint"
 
     PINECONE_API_KEY="your pinecone api key"
+
     PINECONE_ENVIRONMENT="gcp-starter"
 
 
