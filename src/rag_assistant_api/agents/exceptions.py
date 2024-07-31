@@ -4,3 +4,7 @@ class TokenLengthExceedsMaxTokenNumber(Exception):
 
 class ModelNotIncluded(Exception):
     """The model name is not supported"""
+
+
+class NoAnswerError(Exception):
+    """The model didn't respond with an answer."""

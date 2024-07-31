@@ -7,6 +7,16 @@ from ..utils.file_loading import load_yaml_file
 
 
 def get_max_token_number(model_name: str) -> int:
+    """
+    Function to get the maximum token number of a specific model.
+
+    Args:
+        model_name (str): The the name mof the model
+
+    Returns:
+        int: The maximum token number the model can handle
+    """
+    # TODO: Put these hard coded lookups in a config file
     token_num_lookup = {
         "gpt-3.5-turbo-0125": 16000,
         "gpt-3.5-turbo-1106": 16000,
@@ -19,14 +29,22 @@ def get_max_token_number(model_name: str) -> int:
 
 
 def count_tokens(text: str, encoding_model: tiktoken.Encoding):
-    # encoding_model = tiktoken.get_encoding(encoding_model)
-    num_tokens = len(encoding_model.encode(text))
-    return num_tokens
+    return len(encoding_model.encode(text))
 
 
 def count_tokens_of_conversation(
-    chat_messages: List[Dict[str, str]], encoding_model: str
+    chat_messages: list[dict[str, str]], encoding_model: str
 ):
+    """
+    Function to count the tokens of the current conversation.
+
+    Args:
+        chat_messages (list[dict[str, str]]): The chat messages of the current conversation
+        encoding_model (str): The encoding model name to count the tokens
+
+    Returns:
+        int: The token number of the conversation
+    """
     num_tokens = 0
     for message in chat_messages:
         if isinstance(message, dict):
@@ -48,7 +66,7 @@ def insert_initial_system_msg(
     return chat_messages
 
 
-def extract_openai_chat_messages(chat_messages: List[Dict[str, str]]):
+def extract_openai_chat_messages(chat_messages: list[dict[str, str]]):
     """
     Extracts the relevant parts of the chat messages for the llm.
 

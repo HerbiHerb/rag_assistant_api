@@ -14,9 +14,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 app.secret_key = "140918"
 db.init_app(app)
 
-
-# with app.app_context():
-#     db.create_all()
+with app.app_context():
+    db.create_all()
 
 # with app.app_context():
 #     user = User(username="Testuser", password="test")

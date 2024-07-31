@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import List
 
 from flask_sqlalchemy import SQLAlchemy
+from pydantic.errors import NoneIsNotAllowedError
 from sqlalchemy.dialects.mysql import LONGTEXT
 
 db = SQLAlchemy()
@@ -57,6 +58,7 @@ class Conversation(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     chat_messages = db.Column(db.Text)
     chat_messages_meta_data = db.Column(db.Text)
+    thread_id = db.Column(db.Text)
     timestamp_last_message = db.Column(db.DateTime, nullable=False)
 
     def save_meta_data(conv_id: int, msg_idx: int, meta_data: dict):
@@ -70,46 +72,54 @@ class Conversation(db.Model):
         except Exception as e:
             print(e)
 
-    def generate_new_conversation(user_id: int):
-        try:
-            conversation = Conversation(
-                user_id=user_id, timestamp_last_message=datetime.now()
-            )
-            db.session.add(conversation)
-            db.session.commit()
-            return conversation.id
-        except Exception as e:
-            print(e)
+    def generate_new_conversation(user_id: int, thread_id: str = None):
+        conversation = Conversation(
+            user_id=user_id, timestamp_last_message=datetime.now()
+        )
+        if not conversation:
+            raise ValueError(f"No conversation found for user id {user_id}")
+        if thread_id:
+            conversation.thread_id = thread_id
+        db.session.add(conversation)
+        db.session.commit()
+        return conversation.id
 
     def update_chat_messages(conv_id: int, chat_messages: List):
-        try:
-            conversation = Conversation.query.get(conv_id)
-            conversation.chat_messages = json.dumps(chat_messages)
-            conversation.timestamp_last_message = datetime.now()
-            db.session.commit()
-        except Exception as e:
-            print(e)
+        conversation = Conversation.query.get(conv_id)
+        if not conversation:
+            raise ValueError(f"No conversation found for conv id {conv_id}")
+        conversation.chat_messages = json.dumps(chat_messages)
+        conversation.timestamp_last_message = datetime.now()
+        db.session.commit()
 
-    def get_chat_messages(conv_id: int):
-        try:
-            conversation = Conversation.query.get(conv_id)
-            chat_messages = conversation.chat_messages
-            return json.loads(chat_messages)
-        except Exception as e:
-            print(e)
-            return []
+    def get_chat_messages(conv_id: int) -> list[dict[str, str]]:
+        conversation = Conversation.query.get(conv_id)
+        if not conversation:
+            raise ValueError(f"No conversation found for conv id {conv_id}")
+        chat_messages = conversation.chat_messages
+        return json.loads(chat_messages) if chat_messages else []
 
-    def get_latest_conversation(user_id: int):
-        try:
-            user = User.query.get(user_id)
-            conversations = user.conversations
-            return (
-                conversations[-1].id
-                if conversations != None and len(conversations) > 0
-                else None
-            )
-        except Exception as e:
-            print(e)
+    def get_latest_conversation_id(user_id: int):
+        user = User.query.get(user_id)
+        conversations = user.conversations
+        return (
+            conversations[-1].id
+            if conversations != None and len(conversations) > 0
+            else None
+        )
+
+    def get_thread_id_from_conv_id(conv_id: int):
+        conversation = Conversation.query.get(conv_id)
+        if not conversation:
+            raise ValueError(f"No conversation found for conv id {conv_id}")
+        return conversation.thread_id
+
+    def update_thread_id_from_conv_id(conv_id: int, thread_id: str):
+        conversation = Conversation.query.get(conv_id)
+        if not conversation:
+            raise ValueError(f"No conversation found for conv id {conv_id}")
+        conversation.thread_id = thread_id
+        db.session.commit()
 
 
 class Document(db.Model):

@@ -56,7 +56,6 @@ class ChromaDatabaseHandler(DatabaseHandler, extra=Extra.allow):
                     model_name=self.data_processing_config.embedding_model
                 ),
             )
-            test = 0
         except Exception as e:
             print(e)
 

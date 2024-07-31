@@ -1,6 +1,6 @@
-from typing import Any, Iterable
-from pydantic import BaseModel
 import os
+from typing import Any, Iterable
+from pydantic.main import BaseModel
 from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
 import pinecone
 from pinecone import Pinecone

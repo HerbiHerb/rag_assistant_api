@@ -3,10 +3,16 @@
 {"query":"Kannst du mir erklären um was es in der Riemannschen Vermutung geht?", "user_id":1}
 
 
-{"query":"Wo ist Elon Musk aufgewachsen?", "user_id":1}
-
 {"query":"Was steht im Buch Schnelles Denken langsames Denken zum Thema Entscheidungsfindung?", "user_id":1}
 
 curl --noproxy "*" -d '{"query":"Was steht im Buch Schnelles Denken langsames Denken zum Thema Entscheidungsfindung?", "user_id":1}' -H "Content-Type: application/json" -X POST http://localhost:5000/execute_rag
 
 curl --noproxy "*" http://127.0.0.1:5000/generate_vector_db
+
+Wie sieht die World-Model Architektur aus, die im Paper "A path towards autonomous machine intelligence" vorgestellt wird?
+
+Auf welcher Theorie basiert das System 2, welches im Paper erwähnt wird?
+
+Kannst du mir erklären wie der von Yann LeCun vorgeschlagene JEPA-Algorithmus zum Training des Weltmodells funktioniert? Verwende dazu bitte die Dokumentensuche.
+
+
