@@ -3,6 +3,7 @@ from ..agents.openai.openai_agents.openai_functions_agent import OpenAIFunctions
 from ..agents.langchain.langchain_agents.langchain_openai_agent import (
     LangchainOpenAIAgent,
 )
+from ..agents.openai.openai_agents.azure_openai_assistant import AzureOpenAIAssistant
 
 
 class AgentFactory:
@@ -18,6 +19,6 @@ class AgentFactory:
                 AgentFactory.factories[agent_type] = eval(agent_type + ".Factory()")
             except NameError as e:
                 raise NameError(
-                    "NameError: Please define one of the following agent types in the config.yaml file: OpenAIFunctionsAgent"
+                    "NameError: Please define one of the following agent types in the config.yaml file for agent_type: LangchainOpenAIAgent, OpenAIFunctionsAgent, AzureOpenAIAssistant"
                 )
         return AgentFactory.factories[agent_type].initialize_agent(document_filter)

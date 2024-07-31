@@ -1,8 +1,7 @@
 import pathlib
 import os
 from typing import Literal, Optional, Any
-from pydantic import BaseModel, Extra, Field, validator, root_validator
-from pydantic.networks import import_email_validator
+from pydantic import BaseModel, Extra, Field, root_validator
 from pydantic.types import StrictInt
 from ..utils.file_loading import load_yaml_file
 
@@ -138,6 +137,6 @@ class AgentAnswerData(BaseModel):
         self.function_responses.append(new_response)
 
 
-class VectorDBRetrievalData(BaseModel):
+class VectorDBRetrievalData(BaseModel, allow_mutation=False):
     chunk_texts: list[str]
     meta_data: list[dict]

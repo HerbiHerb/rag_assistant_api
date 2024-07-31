@@ -31,6 +31,10 @@ class OpenAIFunctionsAgent(OpenAIAgent):
     function_definitions: list[dict]
 
     class Factory:
+        """
+        The factory class to initialize the agent based on the definition in the config.yaml file.
+        """
+
         def initialize_agent(self, document_filter: dict = None):
             config_data = load_yaml_file(yaml_file_fp=os.getenv("CONFIG_FP"))
             prompt_configs = load_yaml_file(yaml_file_fp=os.getenv("PROMPT_CONFIGS_FP"))
@@ -79,7 +83,18 @@ class OpenAIFunctionsAgent(OpenAIAgent):
         chat_messages: list[dict[str, str]],
         max_token_number: int,
         encoding_model: str,
-    ):
+    ) -> AgentAnswerData:
+        """
+        The function which handles the function calling steps of the agent. The agent decides on his own which function to take to answer the user query.
+
+        Args:
+            chat_messages (list[dict[str, str]]): The list of past chat messages from the current conversation (chat history)
+            max_token_number (int): The maximum number of tokens the agent can handle.
+            encoding_model (str): The model used to count the token number.
+
+        Returns:
+            AgentAnswerData: Data object containing the answer from the agent, the chat history and the function responses
+        """
         num_tokens_in_messages_before = count_tokens_of_conversation(
             chat_messages=chat_messages, encoding_model=encoding_model
         )
@@ -119,6 +134,15 @@ class OpenAIFunctionsAgent(OpenAIAgent):
         chat_messages: list[dict[str, str]],
         tool_calls: list[Any],
     ):
+        """
+        This function adds the function calling information to the chat messages.
+
+        Args:
+            chat_messages (list[dict[str, str]]): The list of past chat messages from the current conversation (chat history)
+            tool_calls (list[Any]): The list of current tool calls to fetch relevant information.
+        Returns:
+            None
+        """
         while len(tool_calls) > 0:
             tool_call = tool_calls.pop(0)
             print(f"TOOL_CALL: {tool_call.function.name}")
@@ -136,7 +160,16 @@ class OpenAIFunctionsAgent(OpenAIAgent):
                 }
             )
 
-    def get_meta_data(self):
+    def get_meta_data(self) -> list[dict[str, str]]:
+        """
+        Extracts the meta data of the function call containing the ground truth information
+
+        Args:
+            intermediate_steps (list[tuple[Any, Any]]): The list of intermediate steps of a function call
+
+        Returns:
+            combined_response_data (list[str]): The list of the meta data used by the model to answer the user query
+        """
         all_meta_data = []
         for function_name in self.available_functions:
             if hasattr(self.available_functions[function_name], "meta_data"):
@@ -147,10 +180,23 @@ class OpenAIFunctionsAgent(OpenAIAgent):
                 self.available_functions[function_name].meta_data = []
         return all_meta_data
 
-    def run(self, query: str, chat_messages: list[dict[str, str]]) -> AgentAnswerData:
+    def run(
+        self, query: str, chat_messages: list[dict[str, str]], **kwargs
+    ) -> AgentAnswerData:
+        """
+        The run function to answer the user query with the corresponding chat history.
+
+        Args:
+            query (str): The new user query
+            chat_messages (list[dict[str, str]]): The list of past chat messages from the current conversation (chat history)
+
+        Returns:
+            AgentAnswerData: Data object containing the answer from the agent, the chat history and the function responses
+        """
         if not chat_messages or len(chat_messages) == 0:
             chat_messages = self.insert_initial_system_msg(chat_messages=chat_messages)
         chat_messages.append({"role": "user", "content": query})
+        # TODO: Replace the hard coded encoding model name and put it in the config file
         agent_answer = self._execute_function_calling(
             chat_messages=chat_messages,
             max_token_number=get_max_token_number(model_name=self.model_name),

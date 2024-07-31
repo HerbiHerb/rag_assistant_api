@@ -3,7 +3,7 @@ import yaml
 import json
 import openai
 from flask import jsonify, request
-import pinecone
+from werkzeug.exceptions import HTTPException
 from dotenv import load_dotenv
 from .init_flask_app import app
 from .local_database.database_models import Conversation, User, Document
@@ -105,49 +105,58 @@ def execute_rag():
     Returns:
         JSON response containing the answer from the AI agent and any source information used.
     """
-    request_data = json.loads(request.data)
-    if not request_data or "query" not in request_data or "user_id" not in request_data:
-        return jsonify({"error": "Request must contain a 'query' key"}), 400
+    try:
+        request_data = json.loads(request.data)
+        query = request_data["query"]
+        user_id = request_data["user_id"]
+        conv_id = Conversation.get_latest_conversation_id(user_id=user_id)
+        if conv_id == None:
+            conv_id = Conversation.generate_new_conversation(user_id=user_id)
+        chat_messages = Conversation.get_chat_messages(conv_id=conv_id)
+        rag_model = AgentFactory.create_agent(
+            config_data=load_yaml_file(yaml_file_fp=os.getenv("CONFIG_FP"))
+        )
+        chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
+        agent_answer = rag_model.run(
+            query=query, chat_messages=chat_messages, conv_id=conv_id
+        )
+        chat_messages = cleanup_function_call_messages(
+            chat_messages=agent_answer.chat_messages
+        )
+        chat_messages.append(
+            {
+                "role": "assistant",
+                "content": agent_answer.final_answer,
+            }
+        )
+        Conversation.update_chat_messages(conv_id=conv_id, chat_messages=chat_messages)
+        Conversation.save_meta_data(
+            conv_id=conv_id,
+            msg_idx=len(chat_messages) - 1,
+            meta_data=agent_answer.function_responses,
+        )
 
-    query = request_data["query"]
-    user_id = request_data["user_id"]
-    conv_id = Conversation.get_latest_conversation(user_id=user_id)
-    if conv_id == None:
-        conv_id = Conversation.generate_new_conversation(user_id=user_id)
-        if not conv_id:
-            return (
-                jsonify(
-                    {"error": "An error occured when generating a new conversation"}
-                ),
-                400,
-            )
-    chat_messages = Conversation.get_chat_messages(conv_id=conv_id)
-    rag_model = AgentFactory.create_agent(
-        config_data=load_yaml_file(yaml_file_fp=os.getenv("CONFIG_FP"))
-    )
-    chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
-    agent_answer = rag_model.run(query=query, chat_messages=chat_messages)
-    chat_messages = cleanup_function_call_messages(
-        chat_messages=agent_answer.chat_messages
-    )
-    chat_messages.append(
-        {
-            "role": "assistant",
-            "content": agent_answer.final_answer,
-        }
-    )
-    Conversation.update_chat_messages(conv_id=conv_id, chat_messages=chat_messages)
-    Conversation.save_meta_data(
-        conv_id=conv_id,
-        msg_idx=len(chat_messages) - 1,
-        meta_data=agent_answer.function_responses,
-    )
-    return jsonify(
-        {
-            "answer": agent_answer.final_answer,
-            "meta_data": agent_answer.function_responses,
-        }
-    )
+        return jsonify(
+            {
+                "answer": agent_answer.final_answer,
+                "meta_data": agent_answer.function_responses,
+            }
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A value exception occured! {str(e)}",
+        )
+    except NotImplementedError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A not implemented exception occured {str(e)}",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A exception occured! {str(e)}",
+        )
 
 
 @app.route("/get_latest_conv_id", methods=["POST"])
@@ -160,7 +169,8 @@ def get_latest_conv_id():
     if not request_data or "user_id" not in request_data:
         return jsonify({"error": "Request must contain a 'user_id' key"}), 400
     user_id = request_data["user_id"]
-    return jsonify({"conv_id": Conversation.get_latest_conversation(user_id=user_id)})
+    conv_id = Conversation.get_latest_conversation_id(user_id=user_id)
+    return jsonify({"conv_id": conv_id})
 
 
 @app.route("/create_new_conversation", methods=["POST"])
@@ -192,6 +202,8 @@ def get_chat_messages():
     if not "query" in request_data:
         return "Request must contain a 'query' key"
     conv_id = request_data["query"]
+    if not conv_id:
+        return jsonify([])
     try:
         chat_messages = Conversation.get_chat_messages(conv_id=conv_id)
         return jsonify(chat_messages)
@@ -258,31 +270,21 @@ def main():
         "r",
     ) as file:
         config_data = yaml.safe_load(file)
-    try:
-        ConfigFileValidator(
-            usage_settings=config_data["usage_settings"],
-            data_processing_config=DataProcessingConfig(
-                **config_data["data_processing"]
-            ),
-            document_processing_config=DocumentProcessingConfig(
-                **config_data["document_processing"]
-            ),
-            chroma_db_config=ChromaDBConfig(**config_data["chroma_db"]),
-            pinecone_db_config=PineconeConfig(
-                api_key=os.getenv("PINECONE_API_KEY"), **config_data["pinecone_db"]
-            ),
-            prompt_configs_fp=os.getenv("PROMPT_CONFIGS_FP"),
-        )
-    except AssertionError as e:
-        print(e)
-        print("Error in config file validation occured!")
-        return
-    except ValueError as e:
-        print(e)
-        print("Error in config file validation occured!")
-        return
 
-    if config_data["usage_settings"]["llm_service"] == "openai":
+    ConfigFileValidator(
+        usage_settings=config_data["usage_settings"],
+        data_processing_config=DataProcessingConfig(**config_data["data_processing"]),
+        document_processing_config=DocumentProcessingConfig(
+            **config_data["document_processing"]
+        ),
+        chroma_db_config=ChromaDBConfig(**config_data["chroma_db"]),
+        pinecone_db_config=PineconeConfig(
+            api_key=os.getenv("PINECONE_API_KEY"), **config_data["pinecone_db"]
+        ),
+        prompt_configs_fp=os.getenv("PROMPT_CONFIGS_FP"),
+    )
+    # Currently only openai and azure is supported
+    if config_data["usage_settings"]["llm_service"] in ["openai", "azure"]:
         openai.api_key = os.getenv("OPENAI_API_KEY")
     app.run(host="0.0.0.0", port=5000, debug=True)
 

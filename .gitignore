@@ -4,11 +4,16 @@ __pycache__/
 *.py[cod]
 *.pyc
 
+data/
+
 .env
 # C extensions
 *.so
 
 config/credentials/
+coverage_re/
+.vscode/
+.directory
 
 # Distribution / packaging
 .Python

@@ -1,5 +1,6 @@
 import os
 import openai
+import pydantic
 from pydantic.types import confloat
 import yaml
 from dotenv import load_dotenv
@@ -38,3 +39,19 @@ def test_vector_db_retrieval():
         top_k=database_handler.db_config.top_k,
     )
     assert isinstance(vecdb_retr_data, VectorDBRetrievalData)
+    assert len(vecdb_retr_data.chunk_texts) > 0
+    assert len(vecdb_retr_data.meta_data) > 0
+
+
+def test_vector_db_data_format():
+    with pytest.raises(pydantic.ValidationError) as excinfo1:
+        vec_db_data1 = VectorDBRetrievalData(
+            chunk_texts={"test": "test"}, meta_data=[{"test": "test"}]
+        )
+
+    with pytest.raises(pydantic.ValidationError) as excinfo2:
+        vec_db_data2 = VectorDBRetrievalData(
+            chunk_texts=["test"], meta_data={"test": "test"}
+        )
+    assert excinfo1.typename == "ValidationError"
+    assert excinfo2.typename == "ValidationError"

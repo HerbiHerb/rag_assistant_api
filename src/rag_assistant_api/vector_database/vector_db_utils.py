@@ -8,20 +8,13 @@ from copy import deepcopy
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import TokenTextSplitter
 from pdfminer.high_level import extract_text
-import chromadb
-from chromadb.utils import embedding_functions
-from chromadb.config import Settings
 from ..data_structures.data_structures import (
-    PineconeConfig,
-    DataProcessingConfig,
     DocumentProcessingConfig,
 )
 from ..utils.data_processing_utils import (
     split_text_into_parts_and_chapters,
-    split_texts_by_keywords,
     split_texts_into_chunks,
     get_embedding,
-    check_for_ignore_prefix,
     extract_meta_data,
     remove_meta_data_from_text,
 )
@@ -198,6 +191,7 @@ def generate_database(database_handler: DatabaseHandler):
     database_handler.create_database()
     embedding_model = EmbeddingModelFactory.create_embedding_model(
         embedding_model_cls=config_data["usage_settings"]["embeddding_model_cls"],
+        llm_service=config_data["usage_settings"]["llm_service"],
         embedding_model_name=config_data["language_models"]["embedding_model"],
     )
     text_splitter = TokenTextSplitter(

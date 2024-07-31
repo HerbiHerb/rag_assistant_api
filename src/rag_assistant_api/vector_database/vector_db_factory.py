@@ -19,9 +19,15 @@ class VectorDBFactory:
     ):
         data_processing_config = DataProcessingConfig(**config_data["data_processing"])
         if not vector_db_cls in VectorDBFactory.factories:
-            VectorDBFactory.factories[vector_db_cls] = eval(
-                vector_db_cls + ".Factory()"
-            )
+            try:
+                VectorDBFactory.factories[vector_db_cls] = eval(
+                    vector_db_cls + ".Factory()"
+                )
+            except NameError as e:
+                raise NameError(
+                    "NameError: Please define one of the following vector database types in the config.yaml file for vector_db: PineconeDatabaseHandler, ChromaDatabaseHandler"
+                )
+
         return VectorDBFactory.factories[vector_db_cls].create(
             config_data, data_processing_config
         )
