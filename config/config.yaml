@@ -1,5 +1,5 @@
 usage_settings:
-  agent_type: LangchainOpenAIAgent #LangchainOpenAIAgent OpenAIFunctionsAgent AzureOpenAIAssistant
+  agent_type: AzureOpenAIAssistant #LangchainOpenAIAgent OpenAIFunctionsAgent AzureOpenAIAssistant
   agent_prompt_config: rag_assistant
   vector_db: PineconeDatabaseHandler #PineconeDatabaseHandler ChromaDatabaseHandler
   embeddding_model_cls: OpenAIEmbeddingModel

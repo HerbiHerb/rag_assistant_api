@@ -70,11 +70,11 @@
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#structure">Structure</a></li>
+    <!-- <li><a href="#structure">Structure</a></li> -->
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <!-- <li><a href="#license">License</a></li> -->
-    <li><a href="#contact">Contact</a></li>
+    <!-- <li><a href="#contact">Contact</a></li> -->
     <!-- <li><a href="#acknowledgments">Acknowledgments</a></li> -->
   </ol>
 </details>
@@ -162,6 +162,7 @@ To implement new functionalities into the api you first need a python environmen
     ```
 
     <strong>Generate a .env file in the root folder of the project</strong>
+
     The .env file contains all necessary environment variables. The file should contain the following variables
 
     Variables to define the config file paths:
@@ -179,9 +180,11 @@ To implement new functionalities into the api you first need a python environmen
 
 
     <strong>Start the API</strong>
+
     Set path to the python environment inside the IDE and start the main.py file. Then the flask application should start. 
 
 *   <strong>Install docker-compose</strong>
+
     Based on [Docker-Compose](https://docs.docker.com/compose/install/standalone/) execute the following command:
     ```
     curl -SL https://github.com/docker/compose/releases/download/v2.28.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
@@ -195,13 +198,13 @@ To implement new functionalities into the api you first need a python environmen
    ```sh
    git clone git@github.com:HerbiHerb/rag_assistant_api.git
    ```
-2. Install python3.9 with pyenv
+2. Install python3.11 with pyenv
    ```sh
-   pyenv install 3.9.2
+   pyenv install 3.11
    ```
    Make the installed python version global
    ```sh
-   pyenv global 3.9
+   pyenv global 3.11
    ```
 3. Navigate into the cloned repository cbp_api
 4. Install all the necessary packages with poetry
@@ -219,14 +222,14 @@ To implement new functionalities into the api you first need a python environmen
     Add the path to the python interpreter path in e.g. VSCode (Strg + Shift + P -> select interpreter -> enter interpreter path)
 5.  Create the docker image
     ```sh
-    docker build --no-cache -t app .
+    docker build --no-cache -t rag-assistant .
     ```
 6. Run the docker containers with docker-compose or docker
    ```sh
    docker-compose up --build -d
    ```
    ```sh
-   docker build --no-cache -t rag-assistant .
+   docker run -p 5000:5000 rag-assistant
    ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -303,9 +306,9 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 
 <!-- CONTACT -->
-## Contact
+<!-- ## Contact
 
-Dennis Herbrik - dennisherbrik1988@gmail.com
+Dennis Herbrik - dennisherbrik1988@gmail.com -->
 
 <!-- Project Link: [https://github.com/github_username/repo_name](https://github.com/github_username/repo_name) -->
 
