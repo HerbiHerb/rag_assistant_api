@@ -88,7 +88,7 @@
 
 The RAG-Assistant-API is a project which makes it easy to generate and use new agents for a wide variety of tasks. Currently it is possible to use LLMs  either directly from OpenAI or from Azure OpenAI but it could be exended to other plathforms as well. For each agent it is possible to implement new functions he can use to answer the incoming user query. It is possible to use the azure assistants api as well. The only thing you need to do is to define an assistant in the azure ai studio,  paste the assistant_id into the config.yaml file and define the AzureOpenAIAssistant as the agent_type.
 
-![image info](src/readme_images/Chatbot-Architecure.png)
+![image info](src/readme_images/Chatbot-Architecture.png)
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
