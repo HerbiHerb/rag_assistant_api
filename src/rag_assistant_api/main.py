@@ -31,6 +31,7 @@ from .utils.data_processing_utils import (
     split_text_into_parts_and_chapters,
 )
 from .utils.file_loading import load_yaml_file
+from .utils.agent_utils import speak_the_answer
 
 
 @app.route("/", methods=["GET"])
@@ -120,6 +121,7 @@ def execute_rag():
         agent_answer = rag_model.run(
             query=query, chat_messages=chat_messages, conv_id=conv_id
         )
+        # speak_the_answer(answer=agent_answer.final_answer)
         chat_messages = cleanup_function_call_messages(
             chat_messages=agent_answer.chat_messages
         )
@@ -285,7 +287,7 @@ def main():
     )
     # Currently only openai and azure is supported
     if config_data["usage_settings"]["llm_service"] in ["openai", "azure"]:
-        openai.api_key = os.getenv("OPENAI_API_KEY")
+        openai.api_key = os.getenv("AZURE_OPENAI_API_KEY")
     app.run(host="0.0.0.0", port=5000, debug=True)
 
 

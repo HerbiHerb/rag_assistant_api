@@ -22,6 +22,8 @@ def test_vector_db_retrieval():
         config_data = yaml.safe_load(file)
     if config_data["usage_settings"]["llm_service"] == "openai":
         openai.api_key = os.getenv("OPENAI_API_KEY")
+    elif config_data["usage_settings"]["llm_service"] == "azure":
+        openai.api_key = os.getenv("AZURE_OPENAI_API_KEY")
     database_handler = VectorDBFactory.create_vector_db_instance(
         vector_db_cls=config_data["usage_settings"]["vector_db"],
         config_data=config_data,

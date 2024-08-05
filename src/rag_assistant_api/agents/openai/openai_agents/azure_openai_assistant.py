@@ -21,8 +21,8 @@ class AzureOpenAIAssistant(AgentBase):
         def initialize_agent(self, document_filter: dict = None):
             config_data = load_yaml_file(yaml_file_fp=os.getenv("CONFIG_FP"))
             azure_ai_client = AzureOpenAI(
-                api_key=os.getenv("OPENAI_API_KEY"),
-                api_version="2024-05-01-preview",
+                api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+                api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
                 azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
             )
 
