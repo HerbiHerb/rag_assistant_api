@@ -22,7 +22,7 @@ class DocumentSearch(BaseTool):
             embedding=query_embeddings,
             top_k=self.database_handler.db_config.top_k,
         )
-        return vecdb_retr_data.chunk_texts, vecdb_retr_data.meta_data
+        return vecdb_retr_data.meta_data
 
 
 class SQLQuerySearch(BaseTool):

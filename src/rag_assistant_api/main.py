@@ -141,7 +141,7 @@ def execute_rag():
         return jsonify(
             {
                 "answer": agent_answer.final_answer,
-                "meta_data": agent_answer.function_responses,
+                "sources": agent_answer.function_responses,
             }
         )
     except ValueError as e:
@@ -205,13 +205,52 @@ def get_chat_messages():
         return "Request must contain a 'query' key"
     conv_id = request_data["query"]
     if not conv_id:
-        return jsonify([])
+        return jsonify(
+            {
+                "chat_messages": [],
+                "sources": [],
+            }
+        )
     try:
         chat_messages = Conversation.get_chat_messages(conv_id=conv_id)
-        return jsonify(chat_messages)
+        sources = Conversation.get_meta_data_for_chat_messages(conv_id=conv_id)
+        return jsonify(
+            {
+                "chat_messages": chat_messages,
+                "sources": sources,
+            }
+        )
     except Exception as e:
         print(e)
         return f"An error occured {e}"
+
+
+@app.route("/get_all_doument_meta_data", methods=["POST"])
+def get_all_doument_meta_data():
+    """
+    Retrieves all document meta_data for a given user ID.
+
+    Returns:
+        JSON response containing all document meta data.
+    """
+    request_data = json.loads(request.data)
+    user_id = request_data["user_id"]
+    documents = Document.get_all_documents_from_user(user_id=user_id)
+    if not documents:
+        config_data = load_yaml_file(yaml_file_fp=os.getenv("CONFIG_FP"))
+        database_handler = VectorDBFactory.create_vector_db_instance(
+            vector_db_cls=config_data["usage_settings"]["vector_db"],
+            config_data=config_data,
+        )
+        metadata = database_handler.get_all_document_meta_data()
+        for entry in metadata:
+            Document.save_document(
+                user_id=user_id,
+                document_name=entry["document_name"],
+                document_type=entry["document_type"],
+            )
+        return jsonify(metadata)
+    return jsonify(documents)
 
 
 @app.route("/generate_vector_db", methods=["GET"])

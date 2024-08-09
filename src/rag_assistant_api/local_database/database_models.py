@@ -14,6 +14,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(100), nullable=False)
+    documents = db.relationship("Document", backref="User")
     conversations = db.relationship("Conversation", backref="User")
 
     def check_username_and_password(username: str, password: str):
@@ -99,6 +100,27 @@ class Conversation(db.Model):
         chat_messages = conversation.chat_messages
         return json.loads(chat_messages) if chat_messages else []
 
+    def get_meta_data_for_chat_messages(conv_id: int):
+        conversation = Conversation.query.get(conv_id)
+        if not conversation:
+            raise ValueError(f"No conversation found for conv id {conv_id}")
+        chat_messages = conversation.chat_messages
+        chat_messages_meta_data = conversation.chat_messages_meta_data
+        if chat_messages and chat_messages_meta_data:
+            chat_messages = json.loads(chat_messages)
+            chat_messages_meta_data = json.loads(chat_messages_meta_data)
+            sources = [
+                (
+                    chat_messages_meta_data[str(idx)]
+                    if str(idx) in chat_messages_meta_data
+                    else []
+                )
+                for idx, msg in enumerate(chat_messages)
+            ]
+            return sources
+        else:
+            return []
+
     def get_latest_conversation_id(user_id: int):
         user = User.query.get(user_id)
         conversations = user.conversations
@@ -124,18 +146,28 @@ class Conversation(db.Model):
 
 class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    document_name = db.Column(db.Text, nullable=False)
     document_type = db.Column(db.Text, nullable=False)
-    document_text = db.Column(db.Text, nullable=False)
+    document_text = db.Column(db.Text)
     chapter_with_summaries = db.Column(db.Text)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
-    def save_document(user_id: int, document_type: str, document_text: str):
+    def save_document(user_id: int, document_name: str, document_type: str):
         document = Document(
-            user_id=user_id, document_type=document_type, document_text=document_text
+            user_id=user_id, document_name=document_name, document_type=document_type
         )
         db.session.add(document)
         db.session.commit()
         return document.id
+
+    def get_all_documents_from_user(user_id: int):
+        user = User.query.get(user_id)
+        documents = user.documents
+        document_metadata = [
+            {"document_name": doc.document_name, "document_type": doc.document_type}
+            for doc in documents
+        ]
+        return document_metadata
 
 
 class UserInformation(db.Model):

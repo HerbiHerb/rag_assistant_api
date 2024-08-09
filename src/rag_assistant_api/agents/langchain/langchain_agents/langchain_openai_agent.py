@@ -71,7 +71,7 @@ class LangchainOpenAIAgent(LangchainAgent):
 
             if config_data["usage_settings"]["llm_service"] == "azure":
                 llm = AzureChatOpenAI(
-                    openai_api_version=os.getenv("OPENAI_API_VERSION"),
+                    openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
                     azure_deployment=config_data["language_models"]["model_name"],
                     temperature=0,
                 )
@@ -141,7 +141,7 @@ class LangchainOpenAIAgent(LangchainAgent):
         combined_response_data = []
         for step in intermediate_steps:
             function_response_data = step[1]
-            combined_response_data.append(function_response_data)
+            combined_response_data.extend(function_response_data)
         return combined_response_data
 
     def run(

@@ -24,5 +24,9 @@ class DatabaseHandler(BaseModel, arbitrary_types_allowed=True, extra=Extra.allow
         pass
 
     @abstractmethod
+    def get_all_document_meta_data(self) -> list[dict[str, str]]:
+        pass
+
+    @abstractmethod
     def upsert(data: Any) -> None:
         pass
