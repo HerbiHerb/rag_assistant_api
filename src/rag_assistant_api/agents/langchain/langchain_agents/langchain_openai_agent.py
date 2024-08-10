@@ -28,12 +28,13 @@ class LangchainOpenAIAgent(LangchainAgent):
         The factory class to initialize the agent based on the definition in the config.yaml file.
         """
 
-        def initialize_agent(self, document_filter: dict = None):
+        def initialize_agent(self, document_filter: dict[str, list[str]] = None):
             config_data = load_yaml_file(yaml_file_fp=os.getenv("CONFIG_FP"))
             prompt_configs = load_yaml_file(yaml_file_fp=os.getenv("PROMPT_CONFIGS_FP"))
             database_handler = VectorDBFactory.create_vector_db_instance(
                 vector_db_cls=config_data["usage_settings"]["vector_db"],
                 config_data=config_data,
+                document_filter=document_filter,
             )
             embedding_model = EmbeddingModelFactory.create_embedding_model(
                 embedding_model_cls=config_data["usage_settings"][

@@ -1,6 +1,6 @@
 import os
 from typing import Any, Iterable
-from pydantic.main import BaseModel
+from pydantic.main import BaseModel, Field
 from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
 import pinecone
 from pinecone import Pinecone
@@ -9,11 +9,16 @@ from ...data_structures.data_structures import VectorDBRetrievalData
 
 
 class PineconeDatabaseHandler(DatabaseHandler):
-    # index: pinecone.Index
     db_config: PineconeConfig
+    document_filter: dict[str, list[str]] = Field(default=None)
 
     class Factory:
-        def create(self, db_config_Data: dict, data_processing_config: BaseModel):
+        def create(
+            self,
+            db_config_Data: dict,
+            data_processing_config: BaseModel,
+            document_filter: dict[str, list[str]] = None,
+        ):
             pinecone_config = PineconeConfig(
                 api_key=os.getenv("PINECONE_API_KEY"), **db_config_Data["pinecone_db"]
             )

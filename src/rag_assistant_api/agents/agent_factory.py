@@ -11,7 +11,7 @@ class AgentFactory:
 
     @staticmethod
     def create_agent(
-        config_data: dict[dict[str, str]], document_filter: dict = None
+        config_data: dict[dict[str, str]], document_filter: dict[str, list[str]] = None
     ) -> AgentBase:
         agent_type = config_data["usage_settings"]["agent_type"]
         if not agent_type in AgentFactory.factories:
