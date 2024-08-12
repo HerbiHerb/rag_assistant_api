@@ -6,6 +6,12 @@ from ....base_classes.embedding_base import EmbeddingModel
 from ....utils.data_processing_utils import get_embedding
 
 
+class DocumentSearchInput(BaseModel):
+    query: str = Field(
+        description="The query string to search for information which could be in different documents. A general formulation shoukd be used and the query should not contain the name of any document."
+    )
+
+
 class DocumentSearch(BaseTool):
     name = "document_search"
     description = """Useful if you need to search for relevant information to answer the user query.
@@ -14,6 +20,7 @@ class DocumentSearch(BaseTool):
     """
     embedding_model: EmbeddingModel
     database_handler: DatabaseHandler
+    args_schema: Type[BaseModel] = DocumentSearchInput
 
     def _run(self, query: str) -> Tuple[List[str]]:
         """Use the tool"""

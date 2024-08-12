@@ -182,24 +182,30 @@ class UserInformation(db.Model):
 
 class SpeechQuery(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_query = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    query_string = db.Column(db.Text, nullable=False)
     state = db.Column(db.String(10), nullable=False, default="queued")
     result = db.Column(db.Integer, default=0)
 
-    def get_latest_query():
-        user_queries = db.session.query(SpeechQuery).all()
-        if user_queries == None or len(user_queries) == 0:
-            return None
-        latest_user_query = user_queries[-1]
-        user_query_dict = {}
-        if latest_user_query.state != "done":
-            user_query_dict["query_id"] = latest_user_query.id
-            user_query_dict["query"] = latest_user_query.user_query
-            user_query_dict["result"] = latest_user_query.result
-        return user_query_dict
+    def get_latest_query(user_id):
+        latest_user_query = (
+            db.session.query(SpeechQuery)
+            .filter_by(user_id=user_id)
+            .order_by(SpeechQuery.id.desc())
+            .first()
+        )
+
+        if latest_user_query and latest_user_query.state != "done":
+            return {
+                "query_id": latest_user_query.id,
+                "query": latest_user_query.query_string,
+                "result": latest_user_query.result,
+                "user_id": latest_user_query.user_id,
+            }
+        return None
 
     def save_user_query(user_id: int, query: str):
-        new_user_query = SpeechQuery(user_id=user_id, user_query=query)
+        new_user_query = SpeechQuery(user_id=user_id, query_string=query)
         db.session.add(new_user_query)
         db.session.commit()
         return new_user_query.id
