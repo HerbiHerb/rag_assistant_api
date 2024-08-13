@@ -196,6 +196,7 @@ class SpeechQuery(db.Model):
         )
 
         if latest_user_query and latest_user_query.state != "done":
+            latest_user_query.state = "done"
             return {
                 "query_id": latest_user_query.id,
                 "query": latest_user_query.query_string,

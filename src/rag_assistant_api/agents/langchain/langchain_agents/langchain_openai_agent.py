@@ -15,7 +15,12 @@ from ....llm_functionalities.embedding_models.embedding_model_factory import (
     EmbeddingModelFactory,
 )
 from ....utils.file_loading import load_yaml_file
-from ..langchain_tools.tools import DocumentSearch, SQLQuerySearch, DocumentFilterSearch
+from ..langchain_tools.tools import (
+    DocumentSearch,
+    SQLQuerySearch,
+    DocumentFilterSearch,
+    GetNewEmails,
+)
 from ....data_structures.data_structures import AgentAnswerData
 
 
@@ -56,6 +61,7 @@ class LangchainOpenAIAgent(LangchainAgent):
                     embedding_model=embedding_model,
                     database_handler=database_handler,
                 ),
+                GetNewEmails(),
             ]
             function_definitions = [
                 convert_to_openai_function(func) for func in functions

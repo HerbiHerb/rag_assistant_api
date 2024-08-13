@@ -109,9 +109,8 @@ def process_speech_query():
         agent_answer = _execute_rag(
             query=query, user_id=user_id, selected_documents=selected_documents
         )
-        return jsonify(
-            {
-                "answer": agent_answer.final_answer,
-                "sources": agent_answer.function_responses,
-            }
-        )
+        response["success"] = True
+        response["answer"] = agent_answer.final_answer
+        response["sources"] = agent_answer.function_responses
+        response["query"] = query
+    return jsonify(response)
