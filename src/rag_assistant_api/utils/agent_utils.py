@@ -1,7 +1,12 @@
 import os
 from typing import List, Dict
+import time
+from openai import OpenAI
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 import tiktoken
+
+# import pygame
+import yaml
 from ..agents.exceptions import ModelNotIncluded
 from ..utils.file_loading import load_yaml_file
 
@@ -101,3 +106,31 @@ def cleanup_function_call_messages(chat_messages: list[dict[str, str]]):
         else:
             converted_chat_messages.append(chat_message)
     return converted_chat_messages
+
+
+def speak_the_answer(answer: str):
+    with open(
+        os.environ["CONFIG_FP"],
+        "r",
+    ) as file:
+        config_data = yaml.safe_load(file)
+    speech_file_path = config_data["openai_tts"]["speech_fp"]
+    openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    with openai_client.audio.speech.with_streaming_response.create(
+        model="tts-1",
+        voice=config_data["openai_tts"]["model"],
+        input=answer,
+    ) as response:
+        response.stream_to_file(os.path.join(speech_file_path, "tmp_mp3.mp3"))
+
+    # pygame.init()
+    # pygame.mixer.init()
+
+    # with open(self.speech_file_path) as f:
+    # pygame.mixer.music.load(speech_file_path)
+    # pygame.mixer.music.play()
+    # while pygame.mixer.music.get_busy():
+    #     pygame.event.pump()
+    # pygame.mixer.quit()
+    # pygame.quit()
+    # os.remove(speech_file_path)

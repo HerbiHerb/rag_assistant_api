@@ -24,6 +24,8 @@ def test_openai_agent_with_empty_chat_messages():
         config_data = yaml.safe_load(file)
     if config_data["usage_settings"]["llm_service"] == "openai":
         openai.api_key = os.getenv("OPENAI_API_KEY")
+    elif config_data["usage_settings"]["llm_service"] == "azure":
+        openai.api_key = os.getenv("AZURE_OPENAI_API_KEY")
     rag_model = AgentFactory.create_agent(config_data=config_data)
     query = "Kannst du mir helfen?"
     chat_messages = []
@@ -42,6 +44,8 @@ def test_openai_agent_with_chat_messages():
         config_data = yaml.safe_load(file)
     if config_data["usage_settings"]["llm_service"] == "openai":
         openai.api_key = os.getenv("OPENAI_API_KEY")
+    elif config_data["usage_settings"]["llm_service"] == "azure":
+        openai.api_key = os.getenv("AZURE_OPENAI_API_KEY")
     rag_model = AgentFactory.create_agent(config_data=config_data)
     query = "Kannst du mir helfen?"
     chat_messages = [

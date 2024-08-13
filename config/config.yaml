@@ -1,5 +1,5 @@
 usage_settings:
-  agent_type: AzureOpenAIAssistant #LangchainOpenAIAgent OpenAIFunctionsAgent AzureOpenAIAssistant
+  agent_type: LangchainOpenAIAgent #LangchainOpenAIAgent OpenAIFunctionsAgent AzureOpenAIAssistant
   agent_prompt_config: rag_assistant
   vector_db: PineconeDatabaseHandler #PineconeDatabaseHandler ChromaDatabaseHandler
   embeddding_model_cls: OpenAIEmbeddingModel
@@ -12,6 +12,9 @@ language_models:
   embedding_model: text-embedding-ada-002
   # deployment_name: "gpt-35-turbo"
   temp": 0.0
+openai_tts:
+  model: "alloy"
+  speech_fp: "src/data/tmp_files"
 document_processing:
   meta_data_pattern: '(?s)\$META_DATA(.*)\$END_META_DATA'
   part_seperator: "$PART$"

@@ -78,6 +78,10 @@ class ChromaDatabaseHandler(DatabaseHandler, extra=Extra.allow):
         )
         return vecdb_retr_data
 
+    def get_all_document_meta_data(self) -> list[dict[str, str]]:
+        all_metadata = []
+        return all_metadata
+
     def upsert(self, data: list[dict[str, Any]]) -> None:
         embeddings = [doc_data["values"] for doc_data in data]
         meta_data = [doc_data["metadata"] for doc_data in data]

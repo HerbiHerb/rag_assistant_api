@@ -15,7 +15,12 @@ from ....llm_functionalities.embedding_models.embedding_model_factory import (
     EmbeddingModelFactory,
 )
 from ....utils.file_loading import load_yaml_file
-from ..langchain_tools.tools import DocumentSearch, SQLQuerySearch
+from ..langchain_tools.tools import (
+    DocumentSearch,
+    SQLQuerySearch,
+    DocumentFilterSearch,
+    GetNewEmails,
+)
 from ....data_structures.data_structures import AgentAnswerData
 
 
@@ -28,12 +33,13 @@ class LangchainOpenAIAgent(LangchainAgent):
         The factory class to initialize the agent based on the definition in the config.yaml file.
         """
 
-        def initialize_agent(self, document_filter: dict = None):
+        def initialize_agent(self, document_filter: dict[str, list[str]] = None):
             config_data = load_yaml_file(yaml_file_fp=os.getenv("CONFIG_FP"))
             prompt_configs = load_yaml_file(yaml_file_fp=os.getenv("PROMPT_CONFIGS_FP"))
             database_handler = VectorDBFactory.create_vector_db_instance(
                 vector_db_cls=config_data["usage_settings"]["vector_db"],
                 config_data=config_data,
+                document_filter=document_filter,
             )
             embedding_model = EmbeddingModelFactory.create_embedding_model(
                 embedding_model_cls=config_data["usage_settings"][
@@ -47,10 +53,15 @@ class LangchainOpenAIAgent(LangchainAgent):
                     embedding_model=embedding_model,
                     database_handler=database_handler,
                 ),
+                DocumentFilterSearch(
+                    embedding_model=embedding_model,
+                    database_handler=database_handler,
+                ),
                 SQLQuerySearch(
                     embedding_model=embedding_model,
                     database_handler=database_handler,
                 ),
+                GetNewEmails(),
             ]
             function_definitions = [
                 convert_to_openai_function(func) for func in functions
@@ -71,7 +82,7 @@ class LangchainOpenAIAgent(LangchainAgent):
 
             if config_data["usage_settings"]["llm_service"] == "azure":
                 llm = AzureChatOpenAI(
-                    openai_api_version=os.getenv("OPENAI_API_VERSION"),
+                    openai_api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
                     azure_deployment=config_data["language_models"]["model_name"],
                     temperature=0,
                 )
@@ -141,7 +152,7 @@ class LangchainOpenAIAgent(LangchainAgent):
         combined_response_data = []
         for step in intermediate_steps:
             function_response_data = step[1]
-            combined_response_data.append(function_response_data)
+            combined_response_data.extend(function_response_data)
         return combined_response_data
 
     def run(

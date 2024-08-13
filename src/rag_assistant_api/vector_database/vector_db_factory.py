@@ -16,6 +16,7 @@ class VectorDBFactory:
     def create_vector_db_instance(
         vector_db_cls: str,
         config_data: dict,
+        document_filter: dict[str, list[str]] = None,
     ):
         data_processing_config = DataProcessingConfig(**config_data["data_processing"])
         if not vector_db_cls in VectorDBFactory.factories:
@@ -29,5 +30,5 @@ class VectorDBFactory:
                 )
 
         return VectorDBFactory.factories[vector_db_cls].create(
-            config_data, data_processing_config
+            config_data, data_processing_config, document_filter
         )
