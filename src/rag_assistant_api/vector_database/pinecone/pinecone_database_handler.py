@@ -1,6 +1,7 @@
 import os
-from typing import Any, Iterable
+from typing import Any, Iterable, Union
 from pydantic.main import BaseModel, Field
+from pydantic import validator
 from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
 import pinecone
 from pinecone import Pinecone
@@ -10,7 +11,7 @@ from ...data_structures.data_structures import VectorDBRetrievalData
 
 class PineconeDatabaseHandler(DatabaseHandler):
     db_config: PineconeConfig
-    document_filter: dict[str, list[str]] = Field(default=None)
+    document_filter: dict[str, dict[str, Union[str, list[str]]]] = Field(default=None)
 
     class Factory:
         def create(
@@ -25,8 +26,23 @@ class PineconeDatabaseHandler(DatabaseHandler):
             database_handler = PineconeDatabaseHandler(
                 data_processing_config=data_processing_config,
                 db_config=pinecone_config,
+                document_filter=document_filter,
             )
             return database_handler
+
+    @validator("document_filter")
+    def check_document_filter(cls, v):
+        if v:
+            empty_lists_contained = any(
+                [
+                    len(values) == 0
+                    for key in v
+                    for check_key, values in zip(v[key].keys(), v[key].values())
+                ]
+            )
+            if empty_lists_contained:
+                return None
+        return v
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -50,12 +66,10 @@ class PineconeDatabaseHandler(DatabaseHandler):
         except Exception as e:
             print("No index available for deletion")
 
-    def query(
-        self, embedding: Iterable, top_k: int, filter: dict = None
-    ) -> VectorDBRetrievalData:
+    def query(self, embedding: Iterable, top_k: int) -> VectorDBRetrievalData:
         query_results = self.index.query(
             vector=embedding,
-            filter=filter,
+            filter=self.document_filter,
             top_k=top_k,
             include_metadata=True,
         )

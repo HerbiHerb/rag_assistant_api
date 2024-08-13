@@ -26,7 +26,7 @@ def _execute_rag(
     chat_messages = Conversation.get_chat_messages(conv_id=conv_id)
     rag_model = AgentFactory.create_agent(
         config_data=load_yaml_file(yaml_file_fp=os.getenv("CONFIG_FP")),
-        document_filter={"document_names": selected_documents},
+        document_filter={"document_name": {"$in": list(selected_documents)}},
     )
     chat_messages = extract_openai_chat_messages(chat_messages=chat_messages)
     agent_answer = rag_model.run(
