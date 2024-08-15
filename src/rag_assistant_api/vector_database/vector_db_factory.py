@@ -6,7 +6,8 @@ from ..data_structures.data_structures import (
     DataProcessingConfig,
 )
 from ..vector_database.pinecone.pinecone_database_handler import PineconeDatabaseHandler
-from ..vector_database.chroma_db.chroma_db_database_handler import ChromaDatabaseHandler
+
+# from ..vector_database.chroma_db.chroma_db_database_handler import ChromaDatabaseHandler
 
 
 class VectorDBFactory:
