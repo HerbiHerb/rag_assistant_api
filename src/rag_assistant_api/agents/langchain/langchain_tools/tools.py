@@ -22,13 +22,12 @@ def renew_token():
     scopes = ["https://www.googleapis.com/auth/gmail.modify"]
 
     flow = InstalledAppFlow.from_client_secrets_file(
-        # "/home/dennis/Dokumente/Projects/jarvis_assistant/config/credentials/credentials.json",
-        r"C:\Users\Dennis\OneDrive\Dokumente\Programmierung\VSCode_Projects\jarvis_assistant\config\credentials\credentials.json",
+        os.getenv("GMAIL_CREDENTIALS_FP"),
         scopes,
     )
     creds = flow.run_local_server(port=0)
     # Save the credentials for the next run
-    with open("token.json", "w") as token:
+    with open(os.getenv("GMAIL_TOKEN_FP"), "w") as token:
         token.write(creds.to_json())
 
 
@@ -111,20 +110,25 @@ class GetNewEmails(BaseTool):
         # The file token.json stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
         # time.
-        if os.path.exists("token.json"):
-            creds = Credentials.from_authorized_user_file("token.json", scopes)
+        if os.path.exists(os.getenv("GMAIL_TOKEN_FP")):
+            creds = Credentials.from_authorized_user_file(
+                os.getenv("GMAIL_TOKEN_FP"), scopes
+            )
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 renew_token()
-                creds = Credentials.from_authorized_user_file("token.json", scopes)
+                creds = Credentials.from_authorized_user_file(
+                    os.getenv("GMAIL_TOKEN_FP"), scopes
+                )
             else:
+                renew_token()
                 flow = InstalledAppFlow.from_client_secrets_file(
-                    "credentials.json", scopes
+                    os.getenv("GMAIL_CREDENTIALS_FP"), scopes
                 )
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
-            with open("token.json", "w") as token:
+            with open(os.getenv("GMAIL_TOKEN_FP"), "w") as token:
                 token.write(creds.to_json())
 
             # Filter and get the IDs of the message I need.

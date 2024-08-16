@@ -25,3 +25,5 @@ python-dotenv == 1.0.1
 langchain-experimental == 0.0.57
 langgraph == 0.0.38
 pdfminer-six == 20231228
+google-api-python-client == 2.141.0
+google-auth-oauthlib == 1.2.1
