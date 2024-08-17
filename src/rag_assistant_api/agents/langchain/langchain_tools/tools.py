@@ -10,6 +10,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from bs4 import BeautifulSoup
 import base64
+from langchain_text_splitters import TokenTextSplitter
 from ....base_classes.database_handler import DatabaseHandler
 from ....base_classes.embedding_base import EmbeddingModel
 from ....utils.data_processing_utils import get_embedding
@@ -86,15 +87,6 @@ class DocumentFilterSearch(BaseTool):
         return vecdb_retr_data.meta_data
 
 
-class DocumentFilterSearchInput(BaseModel):
-    search_string: str = Field(
-        description="The search string to search for relevant information in the vector database. "
-    )
-    document_name: str = Field(
-        description="The name of the document if the user has mentioned it in the search query."
-    )
-
-
 class GetNewEmails(BaseTool):
     name = "get_new_emails"
     description = """Use this tool if the user wants that you check if he has new e-mails in his mailbox.
@@ -117,10 +109,11 @@ class GetNewEmails(BaseTool):
         # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                renew_token()
-                creds = Credentials.from_authorized_user_file(
-                    os.getenv("GMAIL_TOKEN_FP"), scopes
-                )
+                # renew_token()
+                # creds = Credentials.from_authorized_user_file(
+                #     os.getenv("GMAIL_TOKEN_FP"), scopes
+                # )
+                pass
             else:
                 renew_token()
                 flow = InstalledAppFlow.from_client_secrets_file(
@@ -133,7 +126,7 @@ class GetNewEmails(BaseTool):
 
             # Filter and get the IDs of the message I need.
             # I'm just filtering messages that have the label "UNREAD"
-        combined_email_data = "Below are the found new emails or the statement 'There are no new emails' if there are no new emails:\n\n"
+        combined_email_data = []
         try:
             service = build("gmail", "v1", credentials=creds)
             results = (
@@ -147,7 +140,10 @@ class GetNewEmails(BaseTool):
                 print("You have no New Messages.")
             else:
                 message_count = 0
+                text_splitter = TokenTextSplitter(chunk_size=700, chunk_overlap=0)
+
                 for message in messages:
+                    message_text = ""
                     msg = (
                         service.users()
                         .messages()
@@ -155,21 +151,19 @@ class GetNewEmails(BaseTool):
                         .execute()
                     )
                     message_count = message_count + 1
-                    combined_email_data += (
-                        f"##### E-Mail Nr. {message_count} #######\n\n"
-                    )
+                    message_text += f"##### E-Mail Nr. {message_count} #######\n\n"
                     email_data = msg["payload"]["headers"]
                     for values in email_data:
                         name = values["name"]
                         if name == "From":
                             from_name = values["value"]
-                            combined_email_data += f"From: {from_name}\n"
+                            message_text += f"From: {from_name}\n"
                             print(from_name)
                             subject = [
                                 j["value"] for j in email_data if j["name"] == "Subject"
                             ]
                             print(subject)
-                            combined_email_data += f"Subject: {subject}\n"
+                            message_text += f"Subject: {subject}\n"
 
                     if "parts" in msg["payload"]:
                         for p in msg["payload"]["parts"]:
@@ -177,37 +171,75 @@ class GetNewEmails(BaseTool):
                                 email_text = base64.urlsafe_b64decode(
                                     p["body"]["data"]
                                 ).decode("utf-8")
-                                # cutted_email_text = cut_text_to_token_limit(
-                                #     email_text, 200, ENCODING_MODEL
-                                # )
-                                # combined_email_data += (
-                                #     f"E-Mail-Text:\n{cutted_email_text}"
-                                # )
-                                combined_email_data += email_text
+                                texts = text_splitter.split_text(email_text)
+                                message_text += texts[0]
+                                combined_email_data.append({"text": message_text})
+                                break
                             elif p["mimeType"] == "text/html":
                                 data = base64.urlsafe_b64decode(
                                     p["body"]["data"]
                                 ).decode("utf-8")
                                 email_text = BeautifulSoup(data, "html.parser")
                                 email_text = email_text.text
-                                # cutted_email_text = cut_text_to_token_limit(
-                                #     email_text, 200, ENCODING_MODEL
-                                # )
-                                # combined_email_data += (
-                                #     f"E-Mail-Text:\n{cutted_email_text}"
-                                # )
-                                combined_email_data += email_text
+                                texts = text_splitter.split_text(email_text)
+                                message_text += texts[0]
+                                combined_email_data.append({"text": message_text})
+                                break
                     else:
                         data = base64.urlsafe_b64decode(
                             msg["payload"]["body"]["data"]
                         ).decode("utf-8")
                         htmlParse = BeautifulSoup(data, "html.parser")
                         html_text = htmlParse.text
-                        combined_email_data += f"E-Mail-Text:\n{html_text}"
+                        message_text += f"E-Mail-Text:\n{html_text}"
+                        combined_email_data.append({"text": message_text})
             return combined_email_data
         except HttpError as error:
             # TODO(developer) - Handle errors from gmail API.
             print(f"An error occurred: {error}")
+            return []
+
+
+class SendEmail(BaseTool):
+    name = "send_email"
+    description = """Use this function to send an email with a subject and a message to the user email address.
+    """
+
+    def _run(self, subject: str, message: str) -> Tuple[List[str]]:
+        """Use the tool"""
+        scopes = ["https://www.googleapis.com/auth/gmail.modify"]
+        creds = None
+        if os.path.exists("token.json"):
+            creds = Credentials.from_authorized_user_file("token.json", scopes)
+        # If there are no (valid) credentials available, let the user log in.
+
+        try:
+            service = build("gmail", "v1", credentials=creds)
+            email_message = EmailMessage()
+
+            email_message.set_content(message)
+
+            email_message["To"] = "dennisherbrik1988@gmail.com"
+            email_message["From"] = "dennisherbrik1988@gmail.com"
+            email_message["Subject"] = subject
+
+            # encoded message
+            encoded_message = base64.urlsafe_b64encode(
+                email_message.as_bytes()
+            ).decode()
+
+            create_message = {"raw": encoded_message}
+            # pylint: disable=E1101
+            send_message = (
+                service.users()
+                .messages()
+                .send(userId="me", body=create_message)
+                .execute()
+            )
+            print(f'Message Id: {send_message["id"]}')
+        except HttpError as error:
+            print(f"An error occurred: {error}")
+            send_message = None
         return []
 
 

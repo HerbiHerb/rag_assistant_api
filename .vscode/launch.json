@@ -8,8 +8,8 @@
             "name": "Python: Module",
             "type": "python",
             "request": "launch",
-            //"module": "src.rag_assistant_api.main",
-            "module": "src.rag_assistant_api.test_gmail",
+            "module": "src.rag_assistant_api.main",
+            //"module": "src.rag_assistant_api.test_gmail",
             //"module": "src.rag_assistant_api.database_generation_start",
             //"module": "src.llm_assistant_api.agents.langchain_agent.langchain_agent",
             "justMyCode": true
