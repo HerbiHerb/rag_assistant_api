@@ -41,6 +41,8 @@ black = "^24.4.2"
 pdfminer-six = "^20231228"
 defusedxml = "^0.7.1"
 pygame = "^2.6.0"
+google-api-python-client = "^2.141.0"
+google-auth-oauthlib = "^1.2.1"
 
 
 [tool.poetry.group.dev.dependencies]
