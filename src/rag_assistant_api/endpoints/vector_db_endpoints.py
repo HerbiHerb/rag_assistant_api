@@ -45,7 +45,9 @@ def upload_document():
         vector_db_cls=config_data["usage_settings"]["vector_db"],
         config_data=config_data,
     )
-    uploaded_text = request.data.decode("utf-8")
+    request_data = json.loads(request.data)
+    user_id = request_data["user_id"]
+    uploaded_text = request_data["uploaded_text"]
     document_config = DocumentProcessingConfig(**config_data["document_processing"])
     meta_data = extract_meta_data(
         extraction_pattern=document_config.meta_data_pattern,
@@ -59,7 +61,7 @@ def upload_document():
         document_processing_config=document_config,
     )
     document_id = Document.save_document(
-        user_id=meta_data["user_id"],
+        user_id=user_id,
         document_type=meta_data["type"],
         document_text=uploaded_text,
     )
