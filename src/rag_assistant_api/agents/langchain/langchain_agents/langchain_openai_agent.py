@@ -17,9 +17,10 @@ from ....llm_functionalities.embedding_models.embedding_model_factory import (
 from ....utils.file_loading import load_yaml_file
 from ..langchain_tools.tools import (
     DocumentSearch,
-    SQLQuerySearch,
     DocumentFilterSearch,
     GetNewEmails,
+    SendEmail,
+    GoogleSearch,
 )
 from ....data_structures.data_structures import AgentAnswerData
 
@@ -43,7 +44,7 @@ class LangchainOpenAIAgent(LangchainAgent):
             )
             embedding_model = EmbeddingModelFactory.create_embedding_model(
                 embedding_model_cls=config_data["usage_settings"][
-                    "embeddding_model_cls"
+                    "embedding_model_cls"
                 ],
                 llm_service=config_data["usage_settings"]["llm_service"],
                 embedding_model_name=config_data["language_models"]["embedding_model"],
@@ -57,11 +58,9 @@ class LangchainOpenAIAgent(LangchainAgent):
                     embedding_model=embedding_model,
                     database_handler=database_handler,
                 ),
-                SQLQuerySearch(
-                    embedding_model=embedding_model,
-                    database_handler=database_handler,
-                ),
                 GetNewEmails(),
+                SendEmail(),
+                GoogleSearch(),
             ]
             function_definitions = [
                 convert_to_openai_function(func) for func in functions

@@ -39,13 +39,16 @@ def generate_vector_db():
 
 @app.route("/upload_document", methods=["POST"])
 def upload_document():
+    response = {"success": False}
     with open(os.getenv("CONFIG_FP"), "r") as file:
         config_data = yaml.safe_load(file)
     database_handler = VectorDBFactory.create_vector_db_instance(
         vector_db_cls=config_data["usage_settings"]["vector_db"],
         config_data=config_data,
     )
-    uploaded_text = request.data.decode("utf-8")
+    request_data = json.loads(request.data)
+    user_id = request_data["user_id"]
+    uploaded_text = request_data["uploaded_text"]
     document_config = DocumentProcessingConfig(**config_data["document_processing"])
     meta_data = extract_meta_data(
         extraction_pattern=document_config.meta_data_pattern,
@@ -59,8 +62,10 @@ def upload_document():
         document_processing_config=document_config,
     )
     document_id = Document.save_document(
-        user_id=meta_data["user_id"],
+        user_id=user_id,
+        document_name=meta_data["document_name"],
         document_type=meta_data["type"],
         document_text=uploaded_text,
     )
-    return f"Inserted document id {document_id}"
+    response["success"] = True
+    return jsonify(response)

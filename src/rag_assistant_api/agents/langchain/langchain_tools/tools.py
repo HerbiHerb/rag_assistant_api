@@ -1,7 +1,8 @@
 import os
 from langchain.pydantic_v1 import BaseModel, Field
-from langchain.tools import BaseTool, StructuredTool, tool
-from typing import Tuple, List, Type, Union
+from pydantic import root_validator
+from langchain.tools import BaseTool
+from typing import Tuple, List, Type, Union, Any
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -10,7 +11,9 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from bs4 import BeautifulSoup
 import base64
+import requests
 from langchain_text_splitters import TokenTextSplitter
+from langchain.utils import get_from_dict_or_env
 from ....base_classes.database_handler import DatabaseHandler
 from ....base_classes.embedding_base import EmbeddingModel
 from ....utils.data_processing_utils import get_embedding
@@ -200,10 +203,16 @@ class GetNewEmails(BaseTool):
             return []
 
 
+class SendEmailInput(BaseModel):
+    subject: str = Field(description="The subject of the email you want to send.")
+    message: str = Field(description="The actual message you want to send.")
+
+
 class SendEmail(BaseTool):
     name = "send_email"
     description = """Use this function to send an email with a subject and a message to the user email address.
     """
+    args_schema: Type[BaseModel] = SendEmailInput
 
     def _run(self, subject: str, message: str) -> Tuple[List[str]]:
         """Use the tool"""
@@ -243,17 +252,80 @@ class SendEmail(BaseTool):
         return []
 
 
-class SQLQuerySearch(BaseTool):
-    name = "sql_query"
-    description = """"Useful if you need to get data from an sql database. The data table is called 'cp_dwh'.
+class GoogleSearchInput(BaseModel):
+    search_term: str = Field(description="The search term of the google search.")
 
-    Args:
-        sql_query: The search query for the vector database. 
+
+class GoogleSearch(BaseTool):
+    name = "google_search_tool"
+    description = """Use this tool if you need to search for current events, famous people or if the user wants you to do a google search.
     """
-    embedding_model: EmbeddingModel
-    database_handler: DatabaseHandler
+    args_schema: Type[BaseModel] = GoogleSearchInput
+    search_engine: Any
+    google_api_key: str = None
+    google_cse_id: str = None
+    k: int = 4
+    siterestrict: bool = False
 
-    def _run(self, sql_query: str) -> Tuple[List[str]]:
-        """Use the tool"""
-        test = 0
-        return "SQL-Answer"
+    def _google_search_results(self, search_term: str, **kwargs: Any) -> List[dict]:
+        cse = self.search_engine.cse()
+        if self.siterestrict:
+            cse = cse.siterestrict()
+        res = cse.list(q=search_term, cx=self.google_cse_id, **kwargs).execute()
+        return res.get("items", [])
+
+    @root_validator()
+    def validate_environment(cls, values: dict) -> dict:
+        """Validate that api key and python package exists in environment."""
+        google_api_key = get_from_dict_or_env(
+            values, "google_api_key", "GOOGLE_API_KEY"
+        )
+        values["google_api_key"] = google_api_key
+
+        google_cse_id = get_from_dict_or_env(values, "google_cse_id", "GOOGLE_CSE_ID")
+        values["google_cse_id"] = google_cse_id
+
+        service = build("customsearch", "v1", developerKey=google_api_key)
+        values["search_engine"] = service
+
+        return values
+
+    def _get_site_content(self, url: str) -> str:
+        try:
+            response = requests.get(url)
+            soup = BeautifulSoup(response.text, "html.parser")
+            text_splitter = TokenTextSplitter(chunk_size=3000, chunk_overlap=0)
+            texts = text_splitter.split_text(soup.text)
+            return texts[0]
+        except Exception as e:
+            print(e)
+            return ""
+
+    def _run(self, search_term: str) -> List[dict]:
+        """Run query through GoogleSearch and return metadata.
+
+        Args:
+            query: The query to search for.
+            num_results: The number of results to return.
+
+        Returns:
+            A list of dictionaries with the following keys:
+                snippet - The description of the result.
+                title - The title of the result.
+                link - The link to the result.
+        """
+        metadata_results = []
+        results = self._google_search_results(search_term, num=self.k)
+        if len(results) == 0:
+            return [{"Result": "No good Google Search Result was found"}]
+        for result in results:
+            metadata_result = {
+                "title": result["title"],
+                "link": result["link"],
+            }
+            if "snippet" in result:
+                metadata_result["snippet"] = result["snippet"]
+            metadata_result["text"] = self._get_site_content(result["link"])
+            metadata_results.append(metadata_result)
+
+        return metadata_results

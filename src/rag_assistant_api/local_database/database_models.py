@@ -152,9 +152,14 @@ class Document(db.Model):
     chapter_with_summaries = db.Column(db.Text)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
-    def save_document(user_id: int, document_name: str, document_type: str):
+    def save_document(
+        user_id: int, document_name: str, document_type: str, document_text: str = None
+    ):
         document = Document(
-            user_id=user_id, document_name=document_name, document_type=document_type
+            user_id=user_id,
+            document_name=document_name,
+            document_type=document_type,
+            document_text=document_text,
         )
         db.session.add(document)
         db.session.commit()

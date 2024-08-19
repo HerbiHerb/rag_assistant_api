@@ -2,7 +2,7 @@ usage_settings:
   agent_type: LangchainOpenAIAgent #LangchainOpenAIAgent OpenAIFunctionsAgent AzureOpenAIAssistant
   agent_prompt_config: rag_assistant
   vector_db: PineconeDatabaseHandler #PineconeDatabaseHandler ChromaDatabaseHandler
-  embeddding_model_cls: OpenAIEmbeddingModel
+  embedding_model_cls: OpenAIEmbeddingModel
   llm_service: azure
   function_call_prefix: $FUNCTION_CALL
 language_models:  
@@ -32,7 +32,7 @@ data_processing:
   config_credentials: "src/config/credentials"
   meta_prefix: "meta_"
 pinecone_db:
-  index_name: "jarvis-index"
+  index_name: "rag-assistant-index"
   dimension: 1536
   top_k: 5
   metric: "cosine"

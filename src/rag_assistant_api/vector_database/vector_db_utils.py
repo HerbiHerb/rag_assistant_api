@@ -5,7 +5,8 @@ from typing import List
 import sys, os, uuid
 import yaml
 from copy import deepcopy
-from langchain_openai import OpenAIEmbeddings
+
+# from langchain_openai import OpenAIEmbeddings, AzureOpenAIEmbeddings
 from langchain.text_splitter import TokenTextSplitter
 from pdfminer.high_level import extract_text
 from ..data_structures.data_structures import (
@@ -19,6 +20,7 @@ from ..utils.data_processing_utils import (
     remove_meta_data_from_text,
 )
 from ..base_classes.database_handler import DatabaseHandler
+from ..base_classes.embedding_base import EmbeddingModel
 from ..llm_functionalities.embedding_models.embedding_model_factory import (
     EmbeddingModelFactory,
 )
@@ -54,7 +56,7 @@ def extract_text_and_meta_data(
 def process_txt_file(
     file_path: str,
     text_splitter,
-    embedding_model: OpenAIEmbeddings,
+    embedding_model: EmbeddingModel,
     database_handler: DatabaseHandler,
     document_config: DocumentProcessingConfig,
 ):
@@ -92,7 +94,7 @@ def process_txt_file(
 def process_pdf_file(
     file_path: str,
     text_splitter,
-    embedding_model: OpenAIEmbeddings,
+    embedding_model: EmbeddingModel,
     database_handler: DatabaseHandler,
     document_config: DocumentProcessingConfig,
 ):
@@ -138,7 +140,7 @@ def empty_database(database_handler: DatabaseHandler) -> None:
 def upload_chunks_in_batches(
     text_chunks_with_chapters: list[str],
     meta_data: dict,
-    embedding_model: OpenAIEmbeddings,
+    embedding_model: EmbeddingModel,
     database_handler: DatabaseHandler,
 ):
     """
@@ -190,7 +192,7 @@ def generate_database(database_handler: DatabaseHandler):
         config_data = yaml.safe_load(file)
     database_handler.create_database()
     embedding_model = EmbeddingModelFactory.create_embedding_model(
-        embedding_model_cls=config_data["usage_settings"]["embeddding_model_cls"],
+        embedding_model_cls=config_data["usage_settings"]["embedding_model_cls"],
         llm_service=config_data["usage_settings"]["llm_service"],
         embedding_model_name=config_data["language_models"]["embedding_model"],
     )
@@ -231,8 +233,11 @@ def update_database(
 ):
     with open(os.environ["CONFIG_FP"], "r") as file:
         config_data = yaml.safe_load(file)
-    embedding_model = OpenAIEmbeddings(
-        model=config_data["language_models"]["embedding_model"]
+
+    embedding_model = EmbeddingModelFactory.create_embedding_model(
+        embedding_model_cls=config_data["usage_settings"]["embedding_model_cls"],
+        llm_service=config_data["usage_settings"]["llm_service"],
+        embedding_model_name=config_data["language_models"]["embedding_model"],
     )
     text_splitter = TokenTextSplitter(
         chunk_size=database_handler.data_processing_config.chunk_size,
