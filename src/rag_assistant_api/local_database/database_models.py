@@ -165,6 +165,17 @@ class Document(db.Model):
         db.session.commit()
         return document.id
 
+    def check_if_document_name_saved(user_id: int, document_name: str) -> bool:
+        document = (
+            db.session.query(Document)
+            .filter_by(user_id=user_id, document_name=document_name)
+            .first()
+        )
+        if document != None:
+            return True
+        else:
+            return False
+
     def get_all_documents_from_user(user_id: int):
         user = User.query.get(user_id)
         documents = user.documents
