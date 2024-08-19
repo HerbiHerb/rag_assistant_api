@@ -54,6 +54,10 @@ def upload_document():
         extraction_pattern=document_config.meta_data_pattern,
         document_text=uploaded_text,
     )
+    if Document.check_if_document_name_saved(
+        user_id=user_id, document_name=meta_data["document_name"]
+    ):
+        return jsonify(response)
     uploaded_text = remove_meta_data_from_text(text=uploaded_text)
     update_database(
         text=uploaded_text,
