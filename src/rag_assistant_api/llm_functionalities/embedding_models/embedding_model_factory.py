@@ -20,7 +20,7 @@ class EmbeddingModelFactory:
                 )
             except NameError as e:
                 raise NameError(
-                    "NameError: Please define one of the following embedding model types in the config.yaml file for embeddding_model_cls: OpenAIEmbeddingModel"
+                    "NameError: Please define one of the following embedding model types in the config.yaml file for embedding_model_cls: OpenAIEmbeddingModel"
                 )
 
         return EmbeddingModelFactory.factories[embedding_model_cls].create(

@@ -32,7 +32,7 @@ data_processing:
   config_credentials: "src/config/credentials"
   meta_prefix: "meta_"
 pinecone_db:
-  index_name: "jarvis-index"
+  index_name: "rag-assistant-index"
   dimension: 1536
   top_k: 5
   metric: "cosine"

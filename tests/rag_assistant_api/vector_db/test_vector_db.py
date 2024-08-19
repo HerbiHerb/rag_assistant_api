@@ -29,7 +29,7 @@ def test_vector_db_retrieval():
         config_data=config_data,
     )
     embedding_model = EmbeddingModelFactory.create_embedding_model(
-        embedding_model_cls=config_data["usage_settings"]["embeddding_model_cls"],
+        embedding_model_cls=config_data["usage_settings"]["embedding_model_cls"],
         embedding_model_name=config_data["language_models"]["embedding_model"],
     )
     query_embedding = get_embedding(

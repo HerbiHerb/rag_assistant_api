@@ -192,7 +192,7 @@ def generate_database(database_handler: DatabaseHandler):
         config_data = yaml.safe_load(file)
     database_handler.create_database()
     embedding_model = EmbeddingModelFactory.create_embedding_model(
-        embedding_model_cls=config_data["usage_settings"]["embeddding_model_cls"],
+        embedding_model_cls=config_data["usage_settings"]["embedding_model_cls"],
         llm_service=config_data["usage_settings"]["llm_service"],
         embedding_model_name=config_data["language_models"]["embedding_model"],
     )
