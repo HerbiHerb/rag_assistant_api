@@ -196,7 +196,9 @@ class SendEmail(BaseTool):
         scopes = ["https://www.googleapis.com/auth/gmail.modify"]
         creds = None
         if os.path.exists("token.json"):
-            creds = Credentials.from_authorized_user_file("token.json", scopes)
+            creds = Credentials.from_authorized_user_file(
+                os.getenv("GMAIL_TOKEN_FP"), scopes
+            )
         # If there are no (valid) credentials available, let the user log in.
 
         try:
@@ -205,8 +207,8 @@ class SendEmail(BaseTool):
 
             email_message.set_content(message)
 
-            email_message["To"] = "dennisherbrik1988@gmail.com"
-            email_message["From"] = "dennisherbrik1988@gmail.com"
+            email_message["To"] = os.getenv("GMAIL_ADDRESS")
+            email_message["From"] = os.getenv("GMAIL_ADDRESS")
             email_message["Subject"] = subject
 
             # encoded message
