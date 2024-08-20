@@ -19,22 +19,6 @@ from ....base_classes.embedding_base import EmbeddingModel
 from ....utils.data_processing_utils import get_embedding
 
 
-def renew_token():
-    """Shows basic usage of the Gmail API.
-    Lists the user's Gmail labels.
-    """
-    scopes = ["https://www.googleapis.com/auth/gmail.modify"]
-
-    flow = InstalledAppFlow.from_client_secrets_file(
-        os.getenv("GMAIL_CREDENTIALS_FP"),
-        scopes,
-    )
-    creds = flow.run_local_server(port=0)
-    # Save the credentials for the next run
-    with open(os.getenv("GMAIL_TOKEN_FP"), "w") as token:
-        token.write(creds.to_json())
-
-
 class DocumentSearchInput(BaseModel):
     query: str = Field(
         description="The query string to search for information which could be in different documents. A general formulation shoukd be used and the query should not contain the name of any document."
@@ -101,6 +85,7 @@ class GetNewEmails(BaseTool):
     def _run(self) -> Tuple[List[str]]:
         """Use the tool"""
         scopes = ["https://www.googleapis.com/auth/gmail.readonly"]
+        # modify_scopes = ["https://www.googleapis.com/auth/gmail.modify"]
         creds = None
         # The file token.json stores the user's access and refresh tokens, and is
         # created automatically when the authorization flow completes for the first
@@ -109,26 +94,18 @@ class GetNewEmails(BaseTool):
             creds = Credentials.from_authorized_user_file(
                 os.getenv("GMAIL_TOKEN_FP"), scopes
             )
-        # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                # renew_token()
-                # creds = Credentials.from_authorized_user_file(
-                #     os.getenv("GMAIL_TOKEN_FP"), scopes
-                # )
-                pass
+                creds.refresh(Request())
             else:
-                renew_token()
                 flow = InstalledAppFlow.from_client_secrets_file(
                     os.getenv("GMAIL_CREDENTIALS_FP"), scopes
                 )
                 creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
+                # Save the credentials for the next run
             with open(os.getenv("GMAIL_TOKEN_FP"), "w") as token:
                 token.write(creds.to_json())
 
-            # Filter and get the IDs of the message I need.
-            # I'm just filtering messages that have the label "UNREAD"
         combined_email_data = []
         try:
             service = build("gmail", "v1", credentials=creds)
