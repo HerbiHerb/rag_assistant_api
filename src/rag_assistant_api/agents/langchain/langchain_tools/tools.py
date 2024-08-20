@@ -152,7 +152,7 @@ class GetNewEmails(BaseTool):
                                     p["body"]["data"]
                                 ).decode("utf-8")
                                 texts = text_splitter.split_text(email_text)
-                                message_text += texts[0]
+                                message_text += texts[0] if len(texts) > 0 else ""
                                 combined_email_data.append({"text": message_text})
                                 break
                             elif p["mimeType"] == "text/html":
@@ -162,7 +162,7 @@ class GetNewEmails(BaseTool):
                                 email_text = BeautifulSoup(data, "html.parser")
                                 email_text = email_text.text
                                 texts = text_splitter.split_text(email_text)
-                                message_text += texts[0]
+                                message_text += texts[0] if len(texts) > 0 else ""
                                 combined_email_data.append({"text": message_text})
                                 break
                     else:
