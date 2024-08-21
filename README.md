@@ -108,7 +108,14 @@ This project is only one part of the bigger Home-Assitant-Project, which consist
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+### Agents and Tools
+In this project the langchain framework is used for the agents. The underlieing model in the background is a GPT4o model hosted on Azuer OpenAI. Each agent has access to several tools:
 
+- DocumentSearch: Implements a simple vector search based on a search query on a vector database hosted on pinecone.
+- DocumentFilterSearch: Because there could be many different documents in the vector database, many of them might not be relevant. This function searches only in documents which fit to a given document filter. The document filter is also defined by the agent.
+- GetNewEmails: This tool connects to the gmail account and searches for new emails and reads the content.
+- SendEmail: This tool sends an E-Mail to the Gmail-Account of the user with a subject and the message body. 
+- GoogleSearch: This tool executes a google search, takes the top k sites, extracts the content of the sites and gives content texts back to the model as a foundation for the answer. 
 
 <!-- GETTING STARTED -->
 ## Getting Started
