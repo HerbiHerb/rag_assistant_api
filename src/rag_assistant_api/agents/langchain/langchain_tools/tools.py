@@ -74,6 +74,14 @@ class DocumentFilterSearch(BaseTool):
         return vecdb_retr_data.meta_data
 
 
+def interactive_authentication(scopes: list[str]):
+    flow = InstalledAppFlow.from_client_secrets_file(
+        os.getenv("GMAIL_CREDENTIALS_FP"), scopes
+    )
+    creds = flow.run_local_server(port=0)
+    return creds
+
+
 class GetNewEmails(BaseTool):
     name = "get_new_emails"
     description = """Use this tool if the user wants that you check if he has new e-mails in his mailbox.
@@ -98,10 +106,7 @@ class GetNewEmails(BaseTool):
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    os.getenv("GMAIL_CREDENTIALS_FP"), scopes
-                )
-                creds = flow.run_local_server(port=0)
+                creds = interactive_authentication(scopes)
                 # Save the credentials for the next run
             with open(os.getenv("GMAIL_TOKEN_FP"), "w") as token:
                 token.write(creds.to_json())
@@ -195,11 +200,23 @@ class SendEmail(BaseTool):
         """Use the tool"""
         scopes = ["https://www.googleapis.com/auth/gmail.modify"]
         creds = None
-        if os.path.exists("token.json"):
+        if os.path.exists(os.getenv("GMAIL_TOKEN_FP")):
             creds = Credentials.from_authorized_user_file(
                 os.getenv("GMAIL_TOKEN_FP"), scopes
             )
-        # If there are no (valid) credentials available, let the user log in.
+
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                try:
+                    creds.refresh(Request())
+                except Exception as e:
+                    print(e)
+                    creds = interactive_authentication(scopes)
+            else:
+                creds = interactive_authentication(scopes)
+                # Save the credentials for the next run
+            with open(os.getenv("GMAIL_TOKEN_FP"), "w") as token:
+                token.write(creds.to_json())
 
         try:
             service = build("gmail", "v1", credentials=creds)
