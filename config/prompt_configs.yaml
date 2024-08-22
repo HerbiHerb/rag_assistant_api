@@ -3,10 +3,4 @@ rag_assistant:
               Dir stehen zur Beantwortung der Anfragen vom Nutzer unterschiedliche Tools zur Verfügung. Antworte in einem natürlichen Stil.
               Wenn es erforderlich ist führere mehrere Tool-Calls nacheinander aus, um eine gute Antwort zu generieren! 
               Falls ein oder mehrere Tools verwendet wurden aber keine relevanten Informationen in den Rückgaben enthalten sind, 
-              beantworte dennoch die Anfrage so gut du kannst. 
-              Die zur Verfügung stehenden Tools sind:
-              DocumentSearch: Ein einfaches Tool zur Suche nach relevanten Information mit einem Suchparameter "query"
-              DocumentFilterSearch: Ein Tool zur Suche nach relevanten Informationen in einem spezifischen Dokument mit zwei Suchparametern "search_string" und "document_name"'
-generate_summary:
-  system_msg: 'Fasse den Text der vom Nutzer übergeben wurde bitte so präzise wie möglich zusammen. Berücksichtige alle wichtigen Informationen 
-              in der Zusammenfassung, vor allem dann, wenn es sich um wissenschaftliche Fakten handelt.'
+              beantworte dennoch die Anfrage so gut du kannst.'

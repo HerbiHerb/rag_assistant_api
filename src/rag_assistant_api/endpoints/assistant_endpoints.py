@@ -93,24 +93,40 @@ def execute_rag():
 
 @app.route("/process_speech_query", methods=["POST"])
 def process_speech_query():
-    request_data = json.loads(request.data)
-    response = {"success": False}
-    user_id = request_data["user_id"]
-    selected_documents = request_data["selected_documents"]
-    user_query_dict = SpeechQuery.get_latest_query(user_id=user_id)
-    if user_query_dict != None and len(user_query_dict) > 0:
-        SpeechQuery.set_user_query_state(
-            query_id=user_query_dict["query_id"], state="done"
-        )
-    else:
+    try:
+        request_data = json.loads(request.data)
+        response = {"success": False}
+        user_id = request_data["user_id"]
+        selected_documents = request_data["selected_documents"]
+        user_query_dict = SpeechQuery.get_latest_query(user_id=user_id)
+        if user_query_dict != None and len(user_query_dict) > 0:
+            SpeechQuery.set_user_query_state(
+                query_id=user_query_dict["query_id"], state="done"
+            )
+        else:
+            return jsonify(response)
+        query = user_query_dict["query"] if len(user_query_dict) > 0 else ""
+        if query != "":
+            agent_answer = _execute_rag(
+                query=query, user_id=user_id, selected_documents=selected_documents
+            )
+            response["success"] = True
+            response["answer"] = agent_answer.final_answer
+            response["sources"] = agent_answer.function_responses
+            response["query"] = query
         return jsonify(response)
-    query = user_query_dict["query"] if len(user_query_dict) > 0 else ""
-    if query != "":
-        agent_answer = _execute_rag(
-            query=query, user_id=user_id, selected_documents=selected_documents
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A value exception occured! {str(e)}",
         )
-        response["success"] = True
-        response["answer"] = agent_answer.final_answer
-        response["sources"] = agent_answer.function_responses
-        response["query"] = query
-    return jsonify(response)
+    except NotImplementedError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A not implemented exception occured {str(e)}",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A exception occured! {str(e)}",
+        )
