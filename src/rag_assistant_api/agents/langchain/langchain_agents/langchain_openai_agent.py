@@ -21,6 +21,8 @@ from ..langchain_tools.tools import (
     GetNewEmails,
     SendEmail,
     GoogleSearch,
+    YouTubeSearch,
+    FetchLastSources,
 )
 from ....data_structures.data_structures import AgentAnswerData
 
@@ -34,7 +36,9 @@ class LangchainOpenAIAgent(LangchainAgent):
         The factory class to initialize the agent based on the definition in the config.yaml file.
         """
 
-        def initialize_agent(self, document_filter: dict[str, list[str]] = None):
+        def initialize_agent(
+            self, user_id: int, document_filter: dict[str, list[str]] = None
+        ):
             config_data = load_yaml_file(yaml_file_fp=os.getenv("CONFIG_FP"))
             prompt_configs = load_yaml_file(yaml_file_fp=os.getenv("PROMPT_CONFIGS_FP"))
             database_handler = VectorDBFactory.create_vector_db_instance(
@@ -61,6 +65,8 @@ class LangchainOpenAIAgent(LangchainAgent):
                 GetNewEmails(),
                 SendEmail(),
                 GoogleSearch(),
+                YouTubeSearch(youtube_api_key=os.getenv("YOUTUBE_API_KEY")),
+                FetchLastSources(user_id=user_id),
             ]
             function_definitions = [
                 convert_to_openai_function(func) for func in functions

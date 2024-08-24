@@ -43,6 +43,7 @@ defusedxml = "^0.7.1"
 pygame = "^2.6.0"
 google-api-python-client = "^2.141.0"
 google-auth-oauthlib = "^1.2.1"
+youtube-transcript-api = "^0.6.2"
 
 
 [tool.poetry.group.dev.dependencies]

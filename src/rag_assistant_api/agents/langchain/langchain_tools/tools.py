@@ -5,18 +5,20 @@ from langchain.tools import BaseTool
 from typing import Tuple, List, Type, Union, Any
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
 from email.message import EmailMessage
 from googleapiclient.discovery import build
+from youtube_transcript_api import YouTubeTranscriptApi
 from googleapiclient.errors import HttpError
 from bs4 import BeautifulSoup
 import base64
 import requests
 from langchain_text_splitters import TokenTextSplitter
 from langchain.utils import get_from_dict_or_env
+from ....local_database.database_models import Conversation
 from ....base_classes.database_handler import DatabaseHandler
 from ....base_classes.embedding_base import EmbeddingModel
 from ....utils.data_processing_utils import get_embedding
+from ....utils.tool_utils import interactive_authentication
 
 
 class DocumentSearchInput(BaseModel):
@@ -74,14 +76,6 @@ class DocumentFilterSearch(BaseTool):
         return vecdb_retr_data.meta_data
 
 
-def interactive_authentication(scopes: list[str]):
-    flow = InstalledAppFlow.from_client_secrets_file(
-        os.getenv("GMAIL_CREDENTIALS_FP"), scopes
-    )
-    creds = flow.run_local_server(port=0)
-    return creds
-
-
 class GetNewEmails(BaseTool):
     name = "get_new_emails"
     description = """Use this tool if the user wants that you check if he has new e-mails in his mailbox.
@@ -104,7 +98,11 @@ class GetNewEmails(BaseTool):
             )
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
+                try:
+                    creds.refresh(Request())
+                except Exception as e:
+                    print(e)
+                    creds = interactive_authentication(scopes)
             else:
                 creds = interactive_authentication(scopes)
                 # Save the credentials for the next run
@@ -325,3 +323,92 @@ class GoogleSearch(BaseTool):
             metadata_results.append(metadata_result)
 
         return metadata_results
+
+
+class YouTubeSearchInput(BaseModel):
+    search_term: str = Field(description="The search term of youtube videos.")
+
+
+class YouTubeSearch(BaseTool):
+    name = "youtube_search_tool"
+    description = """Use this tool if the user wants you to search for some relevant videos on youtube. At the beginning of your answer mention the video_id please, so that
+    the user can reference to a video.
+    """
+    args_schema: Type[BaseModel] = YouTubeSearchInput
+    search_engine: Any
+    youtube_api_key: str
+
+    def _run(self, search_term: str) -> Tuple[List[str]]:
+        """Use the tool"""
+        api_service_name = "youtube"
+        api_version = "v3"
+        youtube = build(
+            api_service_name, api_version, developerKey=self.youtube_api_key
+        )
+        # request_long = youtube.search().list(
+        #     part="id,snippet",
+        #     type="video",
+        #     q=search_term,
+        #     videoDuration="long",
+        #     videoDefinition="high",
+        #     maxResults=1,
+        #     fields="items(id(videoId),snippet(publishedAt,channelId,channelTitle,title,description))",
+        # )
+        # response_long = request_long.execute()
+        request_mid = youtube.search().list(
+            part="id,snippet",
+            type="video",
+            q=search_term,
+            videoDuration="medium",
+            videoDefinition="high",
+            maxResults=4,
+            fields="items(id(videoId),snippet(publishedAt,channelId,channelTitle,title,description))",
+        )
+        response_mid = request_mid.execute()
+        all_items = []
+        # all_items.extend(response_long["items"])
+        all_items.extend(response_mid["items"])
+        # Query execution
+        all_transcriptions = []
+
+        for item in all_items:
+            video_id = item["id"]["videoId"]
+            transcript = YouTubeTranscriptApi.get_transcript(
+                video_id, languages=["de", "en"]
+            )
+            whole_text = ""
+            for text_snipped in transcript:
+                whole_text += " " + text_snipped["text"]
+            all_transcriptions.append({"video_id": video_id, "text": whole_text})
+        return all_transcriptions
+
+
+class FetchLastSources(BaseTool):
+    name = "fetch_last_sources"
+    description = """Use this tool if the user has a follow up question regrding your answer of the last question. You can see the same sourced again to answer 
+    the question.
+    """
+    user_id: int
+
+    def _to_args_and_kwargs(self, tool_input: Union[str, dict]) -> Tuple[Tuple, dict]:
+        return (), {}
+
+    def _run(self, opt_str: str = None) -> Tuple[List[str]]:
+        """Use the tool"""
+        conv_id = Conversation.get_latest_conversation_id(user_id=self.user_id)
+        meta_data = Conversation.get_meta_data_for_chat_messages(conv_id=conv_id)
+        return meta_data[-1]
+
+
+class PlayYouTubeVideoInput(BaseModel):
+    video_id: str = Field(description="The id of the video to play.")
+
+
+class PlayYouTubeVideo(BaseTool):
+    name = "play_youtube_video"
+    description = """Use this tool if the user wants you to play a specific video.
+    """
+
+    def _run(self, video_id: str) -> Tuple[List[str]]:
+        """Use the tool"""
+        return [{"play_video": video_id}]
