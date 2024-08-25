@@ -4,8 +4,6 @@ import time
 from openai import OpenAI
 from openai.types.chat.chat_completion_message import ChatCompletionMessage
 import tiktoken
-
-# import pygame
 import yaml
 from ..agents.exceptions import ModelNotIncluded
 from ..utils.file_loading import load_yaml_file

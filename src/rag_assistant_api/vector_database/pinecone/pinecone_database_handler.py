@@ -1,7 +1,6 @@
 import os
 from typing import Any, Iterable, Union
-from pydantic.main import BaseModel, Field
-from pydantic import validator
+from pydantic.v1 import BaseModel, Field, validator, ValidationError
 from ...data_structures.data_structures import PineconeConfig, DataProcessingConfig
 import pinecone
 from pinecone import Pinecone

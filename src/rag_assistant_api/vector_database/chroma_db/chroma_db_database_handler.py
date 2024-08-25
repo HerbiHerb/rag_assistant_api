@@ -1,5 +1,5 @@
 from typing import Any, Iterable
-from pydantic import Extra
+from pydantic.v1 import Extra
 import chromadb
 import uuid
 from chromadb.utils import embedding_functions
