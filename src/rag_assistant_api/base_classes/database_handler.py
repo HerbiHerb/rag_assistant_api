@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from pydantic import BaseModel, Extra
+from pydantic.v1 import BaseModel, Extra
 from typing import Any, Iterable, List, Tuple
 from ..data_structures.data_structures import DataProcessingConfig
 from ..data_structures.data_structures import (

@@ -1,7 +1,7 @@
 import pathlib
 import os
 from typing import Literal, Optional, Any
-from pydantic import BaseModel, Extra, Field, root_validator
+from pydantic.v1 import BaseModel, Extra, Field, root_validator
 from pydantic.types import StrictInt
 from ..utils.file_loading import load_yaml_file
 

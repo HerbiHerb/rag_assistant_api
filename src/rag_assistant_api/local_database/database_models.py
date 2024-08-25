@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import List
 
 from flask_sqlalchemy import SQLAlchemy
-from pydantic.errors import NoneIsNotAllowedError
 from sqlalchemy.dialects.mysql import LONGTEXT
 
 db = SQLAlchemy()

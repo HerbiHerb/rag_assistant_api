@@ -1,5 +1,5 @@
 import pinecone
-from pydantic import BaseModel, Field
+from pydantic.v1 import BaseModel, Field
 from ..base_classes.database_handler import DatabaseHandler
 from ..data_structures.data_structures import DataProcessingConfig
 from ..data_structures.data_structures import (

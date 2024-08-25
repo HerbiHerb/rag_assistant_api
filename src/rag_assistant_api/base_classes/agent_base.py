@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from pydantic import BaseModel, Field
+from pydantic.v1 import BaseModel, Field
 from openai import OpenAI
 from openai._types import NOT_GIVEN
 from langchain_core.language_models.base import BaseLanguageModel

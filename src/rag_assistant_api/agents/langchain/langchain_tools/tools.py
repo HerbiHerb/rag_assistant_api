@@ -1,6 +1,6 @@
 import os
 from langchain.pydantic_v1 import BaseModel, Field
-from pydantic import root_validator
+from pydantic.v1 import root_validator
 from langchain.tools import BaseTool
 from typing import Tuple, List, Type, Union, Any
 from google.auth.transport.requests import Request
@@ -412,3 +412,33 @@ class PlayYouTubeVideo(BaseTool):
     def _run(self, video_id: str) -> Tuple[List[str]]:
         """Use the tool"""
         return [{"play_video": video_id}]
+
+
+class ChangeCompetenceLevelInput(BaseModel):
+    level: str = Field(
+        description="The competence level to switch to. Can be either 3 or 4."
+    )
+
+
+class ChangeCompetenceLevel(BaseTool):
+    name = "play_youtube_video"
+    description = """Use this tool if the user wants you to switch to another competence level. You have two competence levels (3 or 4).
+    """
+
+    def _run(self, level: str) -> Tuple[List[str]]:
+        """Use the tool"""
+        return [{"text": "changed competence level"}]
+
+
+class SaveDataInput(BaseModel):
+    data: str = Field(description="The data to save for the user")
+
+
+class SaveData(BaseTool):
+    name = "play_youtube_video"
+    description = """Use this tool if the user wants you to save some date for the user. This could be previous answers you gave to the user or raw input data from the user.
+    """
+
+    def _run(self, data: str) -> Tuple[List[str]]:
+        """Use the tool"""
+        return [{"text": "successfully saved the data"}]
