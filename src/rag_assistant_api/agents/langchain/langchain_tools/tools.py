@@ -345,26 +345,21 @@ class YouTubeSearch(BaseTool):
         youtube = build(
             api_service_name, api_version, developerKey=self.youtube_api_key
         )
-        # request_long = youtube.search().list(
-        #     part="id,snippet",
-        #     type="video",
-        #     q=search_term,
-        #     videoDuration="long",
-        #     videoDefinition="high",
-        #     maxResults=1,
-        #     fields="items(id(videoId),snippet(publishedAt,channelId,channelTitle,title,description))",
-        # )
-        # response_long = request_long.execute()
-        request_mid = youtube.search().list(
-            part="id,snippet",
-            type="video",
-            q=search_term,
-            videoDuration="medium",
-            videoDefinition="high",
-            maxResults=4,
-            fields="items(id(videoId),snippet(publishedAt,channelId,channelTitle,title,description))",
-        )
-        response_mid = request_mid.execute()
+        try:
+            request_mid = youtube.search().list(
+                part="id,snippet",
+                type="video",
+                q=search_term,
+                videoDuration="medium",
+                videoDefinition="high",
+                maxResults=4,
+                fields="items(id(videoId),snippet(publishedAt,channelId,channelTitle,title,description))",
+            )
+            response_mid = request_mid.execute()
+        except Exception as e:
+            print("Error in YouTubeSearch tool.")
+            print(e)
+            return []
         all_items = []
         # all_items.extend(response_long["items"])
         all_items.extend(response_mid["items"])
@@ -373,9 +368,14 @@ class YouTubeSearch(BaseTool):
 
         for item in all_items:
             video_id = item["id"]["videoId"]
-            transcript = YouTubeTranscriptApi.get_transcript(
-                video_id, languages=["de", "en"]
-            )
+            try:
+                transcript = YouTubeTranscriptApi.get_transcript(
+                    video_id, languages=["de", "en"]
+                )
+            except Exception as e:
+                print("Video transscription couldn't be extracted")
+                print(e)
+                continue
             whole_text = ""
             for text_snipped in transcript:
                 whole_text += " " + text_snipped["text"]
@@ -440,5 +440,19 @@ class SaveData(BaseTool):
     """
 
     def _run(self, data: str) -> Tuple[List[str]]:
+        """Use the tool"""
+        return [{"text": "successfully saved the data"}]
+
+
+class ChartDrawerInput(BaseModel):
+    xml_code: str = Field(description="The xml code to generate the chart.")
+
+
+class ChartDrawer(BaseTool):
+    name = "play_youtube_video"
+    description = """Use this tool if the user wants a chart out of a given text. This could be used if the text describes a process with connected items or contains connected dependencies.
+    """
+
+    def _run(self, xml_code: str) -> Tuple[List[str]]:
         """Use the tool"""
         return [{"text": "successfully saved the data"}]
