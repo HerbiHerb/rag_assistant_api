@@ -18,7 +18,7 @@ from ....local_database.database_models import Conversation
 from ....base_classes.database_handler import DatabaseHandler
 from ....base_classes.embedding_base import EmbeddingModel
 from ....utils.data_processing_utils import get_embedding
-from ....utils.tool_utils import interactive_authentication
+from ....utils.tool_utils import interactive_authentication, send_mail
 
 
 class DocumentSearchInput(BaseModel):
@@ -39,6 +39,10 @@ class DocumentSearch(BaseTool):
 
     def _run(self, query: str) -> Tuple[List[str]]:
         """Use the tool"""
+        # TODO: - Add a query reformulation step with an llm to get more variation in the search for relevant documents
+        #       - Add a reranker on top of the vector search
+        #       - For the most relevant chunk take the text of the whole chapter in which it appears
+        #       - Take chunks from other documents al well (to get more variation)
         query_embeddings = get_embedding(query, embedding_model=self.embedding_model)
         vecdb_retr_data = self.database_handler.query(
             embedding=query_embeddings,
@@ -78,35 +82,34 @@ class DocumentFilterSearch(BaseTool):
 
 class GetNewEmails(BaseTool):
     name = "get_new_emails"
-    description = """Use this tool if the user wants that you check if he has new e-mails in his mailbox.
-    """
+    description = """Use this tool if the user wants you to check if there are new emails in the mailbox."""
 
     def _to_args_and_kwargs(self, tool_input: Union[str, dict]) -> Tuple[Tuple, dict]:
         return (), {}
 
-    def _run(self) -> Tuple[List[str]]:
+    def _run(self) -> List[dict]:
         """Use the tool"""
         scopes = ["https://www.googleapis.com/auth/gmail.readonly"]
-        # modify_scopes = ["https://www.googleapis.com/auth/gmail.modify"]
         creds = None
-        # The file token.json stores the user's access and refresh tokens, and is
-        # created automatically when the authorization flow completes for the first
-        # time.
-        if os.path.exists(os.getenv("GMAIL_TOKEN_FP")):
-            creds = Credentials.from_authorized_user_file(
-                os.getenv("GMAIL_TOKEN_FP"), scopes
-            )
+        token_path = os.getenv("GMAIL_TOKEN_FP")
+
+        if not token_path:
+            raise ValueError("Environment variable GMAIL_TOKEN_FP is not set.")
+
+        if os.path.exists(token_path):
+            creds = Credentials.from_authorized_user_file(token_path, scopes)
+
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 try:
                     creds.refresh(Request())
                 except Exception as e:
-                    print(e)
+                    print(f"Error refreshing credentials: {e}")
                     creds = interactive_authentication(scopes)
             else:
                 creds = interactive_authentication(scopes)
-                # Save the credentials for the next run
-            with open(os.getenv("GMAIL_TOKEN_FP"), "w") as token:
+
+            with open(token_path, "w") as token:
                 token.write(creds.to_json())
 
         combined_email_data = []
@@ -119,6 +122,7 @@ class GetNewEmails(BaseTool):
                 .execute()
             )
             messages = results.get("messages", [])
+
             if not messages:
                 print("You have no New Messages.")
             else:
@@ -133,52 +137,50 @@ class GetNewEmails(BaseTool):
                         .get(userId="me", id=message["id"])
                         .execute()
                     )
-                    message_count = message_count + 1
+                    message_count += 1
                     message_text += f"##### E-Mail Nr. {message_count} #######\n\n"
                     email_data = msg["payload"]["headers"]
-                    for values in email_data:
-                        name = values["name"]
-                        if name == "From":
-                            from_name = values["value"]
-                            message_text += f"From: {from_name}\n"
-                            print(from_name)
-                            subject = [
-                                j["value"] for j in email_data if j["name"] == "Subject"
-                            ]
-                            print(subject)
-                            message_text += f"Subject: {subject}\n"
+
+                    from_name = next(
+                        (v["value"] for v in email_data if v["name"] == "From"),
+                        "Unknown",
+                    )
+                    subject = next(
+                        (v["value"] for v in email_data if v["name"] == "Subject"),
+                        "No Subject",
+                    )
+
+                    message_text += f"From: {from_name}\nSubject: {subject}\n"
 
                     if "parts" in msg["payload"]:
-                        for p in msg["payload"]["parts"]:
-                            if p["mimeType"] == "text/plain":
+                        for part in msg["payload"]["parts"]:
+                            if part["mimeType"] == "text/plain":
                                 email_text = base64.urlsafe_b64decode(
-                                    p["body"]["data"]
+                                    part["body"]["data"]
                                 ).decode("utf-8")
                                 texts = text_splitter.split_text(email_text)
-                                message_text += texts[0] if len(texts) > 0 else ""
+                                message_text += texts[0] if texts else ""
                                 combined_email_data.append({"text": message_text})
                                 break
-                            elif p["mimeType"] == "text/html":
+                            elif part["mimeType"] == "text/html":
                                 data = base64.urlsafe_b64decode(
-                                    p["body"]["data"]
+                                    part["body"]["data"]
                                 ).decode("utf-8")
-                                email_text = BeautifulSoup(data, "html.parser")
-                                email_text = email_text.text
+                                email_text = BeautifulSoup(data, "html.parser").text
                                 texts = text_splitter.split_text(email_text)
-                                message_text += texts[0] if len(texts) > 0 else ""
+                                message_text += texts[0] if texts else ""
                                 combined_email_data.append({"text": message_text})
                                 break
                     else:
                         data = base64.urlsafe_b64decode(
                             msg["payload"]["body"]["data"]
                         ).decode("utf-8")
-                        htmlParse = BeautifulSoup(data, "html.parser")
-                        html_text = htmlParse.text
+                        html_text = BeautifulSoup(data, "html.parser").text
                         message_text += f"E-Mail-Text:\n{html_text}"
                         combined_email_data.append({"text": message_text})
+
             return combined_email_data
         except HttpError as error:
-            # TODO(developer) - Handle errors from gmail API.
             print(f"An error occurred: {error}")
             return []
 
@@ -190,59 +192,42 @@ class SendEmailInput(BaseModel):
 
 class SendEmail(BaseTool):
     name = "send_email"
-    description = """Use this function to send an email with a subject and a message to the user email address.
-    """
+    description = """Use this function to send an email with a subject and a message to the user's email address."""
     args_schema: Type[BaseModel] = SendEmailInput
 
-    def _run(self, subject: str, message: str) -> Tuple[List[str]]:
+    def _run(self, subject: str, message: str) -> list:
         """Use the tool"""
         scopes = ["https://www.googleapis.com/auth/gmail.modify"]
         creds = None
-        if os.path.exists(os.getenv("GMAIL_TOKEN_FP")):
-            creds = Credentials.from_authorized_user_file(
-                os.getenv("GMAIL_TOKEN_FP"), scopes
-            )
+        token_path = os.getenv("GMAIL_TOKEN_FP")
+
+        if not token_path:
+            raise ValueError("Environment variable GMAIL_TOKEN_FP is not set.")
+
+        if os.path.exists(token_path):
+            creds = Credentials.from_authorized_user_file(token_path, scopes)
 
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 try:
                     creds.refresh(Request())
                 except Exception as e:
-                    print(e)
+                    print(f"Error refreshing credentials: {e}")
                     creds = interactive_authentication(scopes)
             else:
                 creds = interactive_authentication(scopes)
-                # Save the credentials for the next run
-            with open(os.getenv("GMAIL_TOKEN_FP"), "w") as token:
+
+            with open(token_path, "w") as token:
                 token.write(creds.to_json())
-
-        try:
-            service = build("gmail", "v1", credentials=creds)
-            email_message = EmailMessage()
-
-            email_message.set_content(message)
-
-            email_message["To"] = os.getenv("GMAIL_ADDRESS")
-            email_message["From"] = os.getenv("GMAIL_ADDRESS")
-            email_message["Subject"] = subject
-
-            # encoded message
-            encoded_message = base64.urlsafe_b64encode(
-                email_message.as_bytes()
-            ).decode()
-
-            create_message = {"raw": encoded_message}
-            # pylint: disable=E1101
-            send_message = (
-                service.users()
-                .messages()
-                .send(userId="me", body=create_message)
-                .execute()
-            )
-            print(f'Message Id: {send_message["id"]}')
-        except HttpError as error:
-            print(f"An error occurred: {error}")
-            send_message = None
+        for _ in range(2):
+            try:
+                send_mail(subject=subject, message=message, creds=creds)
+                break
+            except HttpError as error:
+                print(f"An error occurred: {error}")
+                creds = interactive_authentication(scopes)
+                with open(token_path, "w") as token:
+                    token.write(creds.to_json())
         return []
 
 
@@ -326,27 +311,24 @@ class GoogleSearch(BaseTool):
 
 
 class YouTubeSearchInput(BaseModel):
-    search_term: str = Field(description="The search term of youtube videos.")
+    search_term: str = Field(description="The search term for YouTube videos.")
 
 
 class YouTubeSearch(BaseTool):
     name = "youtube_search_tool"
-    description = """Use this tool if the user wants you to search for some relevant videos on youtube. At the beginning of your answer mention the video_id please, so that
-    the user can reference to a video.
-    """
+    description = """Use this tool if the user wants you to search for some relevant videos on YouTube. At the beginning of your answer mention the video_id please, so that the user can reference a video."""
     args_schema: Type[BaseModel] = YouTubeSearchInput
-    search_engine: Any
+    search_engine: Any = None
     youtube_api_key: str
 
-    def _run(self, search_term: str) -> Tuple[List[str]]:
-        """Use the tool"""
+    def _run(self, search_term: str) -> List[dict]:
         api_service_name = "youtube"
         api_version = "v3"
-        youtube = build(
-            api_service_name, api_version, developerKey=self.youtube_api_key
-        )
         try:
-            request_mid = youtube.search().list(
+            youtube = build(
+                api_service_name, api_version, developerKey=self.youtube_api_key
+            )
+            request = youtube.search().list(
                 part="id,snippet",
                 type="video",
                 q=search_term,
@@ -355,31 +337,26 @@ class YouTubeSearch(BaseTool):
                 maxResults=4,
                 fields="items(id(videoId),snippet(publishedAt,channelId,channelTitle,title,description))",
             )
-            response_mid = request_mid.execute()
+            response = request.execute()
         except Exception as e:
-            print("Error in YouTubeSearch tool.")
-            print(e)
+            print(f"Error in YouTubeSearch tool: {e}")
             return []
-        all_items = []
-        # all_items.extend(response_long["items"])
-        all_items.extend(response_mid["items"])
-        # Query execution
+
         all_transcriptions = []
 
-        for item in all_items:
+        for item in response.get("items", []):
             video_id = item["id"]["videoId"]
             try:
                 transcript = YouTubeTranscriptApi.get_transcript(
                     video_id, languages=["de", "en"]
                 )
             except Exception as e:
-                print("Video transscription couldn't be extracted")
-                print(e)
+                print(f"Could not extract transcript for video {video_id}: {e}")
                 continue
-            whole_text = ""
-            for text_snipped in transcript:
-                whole_text += " " + text_snipped["text"]
+
+            whole_text = " ".join([t["text"] for t in transcript])
             all_transcriptions.append({"video_id": video_id, "text": whole_text})
+
         return all_transcriptions
 
 
