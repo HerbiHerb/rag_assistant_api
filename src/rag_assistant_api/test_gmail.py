@@ -11,10 +11,6 @@ if __name__ == "__main__":
 
     # email_func._run()
 
-    # send_mail = SendEmail()
+    send_mail = SendEmail()
 
-    # send_mail._run(subject="Erinnerung", message="Rufe das Krankenhaus an")
-
-    test = 0
-    google_search = GoogleSearch()
-    google_search._run(search_term="Was hat Elon Musk studiert?")
+    send_mail._run(subject="Erinnerung", message="Rufe das Krankenhaus an")
