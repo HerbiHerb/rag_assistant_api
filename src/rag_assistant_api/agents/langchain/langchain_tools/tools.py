@@ -39,6 +39,10 @@ class DocumentSearch(BaseTool):
 
     def _run(self, query: str) -> Tuple[List[str]]:
         """Use the tool"""
+        # TODO: - Add a query reformulation step with an llm to get more variation in the search for relevant documents
+        #       - Add a reranker on top of the vector search
+        #       - For the most relevant chunk take the text of the whole chapter in which it appears
+        #       - Take chunks from other documents al well (to get more variation)
         query_embeddings = get_embedding(query, embedding_model=self.embedding_model)
         vecdb_retr_data = self.database_handler.query(
             embedding=query_embeddings,
