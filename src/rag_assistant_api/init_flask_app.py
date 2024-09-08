@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask
+from flask_cors import CORS
 from .local_database.database_models import db, User
 
 import pathlib
@@ -8,6 +9,7 @@ import pathlib
 DATABASE_ROOT = pathlib.Path(__file__).parent
 
 app = Flask(__name__)
+CORS(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     f"sqlite:///{DATABASE_ROOT}/instance/database.db"
 )

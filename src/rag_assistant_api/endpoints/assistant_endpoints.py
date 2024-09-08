@@ -71,6 +71,7 @@ def execute_rag():
         )
         return jsonify(
             {
+                "success": True,
                 "answer": agent_answer.final_answer,
                 "sources": agent_answer.function_responses,
             }
